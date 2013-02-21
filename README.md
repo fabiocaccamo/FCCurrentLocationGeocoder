@@ -2,13 +2,15 @@ FCCurrentLocationGeocoder
 =========================
 
 <pre><code>//create geocoder
-FCCurrentLocationGeocoder * geocoder = [FCCurrentLocationGeocoder geocoder];
+FCCurrentLocationGeocoder * geocoder;
+
+geocoder = [FCCurrentLocationGeocoder geocoder];
 //or
-FCCurrentLocationGeocoder * geocoder = [FCCurrentLocationGeocoder geocoderWithTimeout:5.0];
+geocoder = [FCCurrentLocationGeocoder geocoderWithTimeout:10.0]; //5 seconds timeout
 //or
-FCCurrentLocationGeocoder * geocoder = [[FCCurrentLocationGeocoder alloc] init];
+geocoder = [[FCCurrentLocationGeocoder alloc] init];
 //or
-FCCurrentLocationGeocoder * geocoder = [[FCCurrentLocationGeocoder alloc] initWithTimeout:5.0]; //5 seconds timeout
+geocoder = [[FCCurrentLocationGeocoder alloc] initWithTimeout:5.0]; //5 seconds timeout
 
 
 //start geocoding
