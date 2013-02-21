@@ -1,9 +1,17 @@
 FCCurrentLocationGeocoder
 =========================
 
-<pre><code>FCCurrentLocationGeocoder * geocoder = [[FCCurrentLocationGeocoder alloc] initWithTimeout:5.0]; //5 seconds timeout
+<pre><code>//create geocoder
+FCCurrentLocationGeocoder * geocoder = [FCCurrentLocationGeocoder geocoder];
+//or
+FCCurrentLocationGeocoder * geocoder = [FCCurrentLocationGeocoder geocoderWithTimeout:5.0];
+//or
+FCCurrentLocationGeocoder * geocoder = [[FCCurrentLocationGeocoder alloc] init];
+//or
+FCCurrentLocationGeocoder * geocoder = [[FCCurrentLocationGeocoder alloc] initWithTimeout:5.0]; //5 seconds timeout
 
-geocoder
+
+//start geocoding
 [geocoder startGeocode:^(BOOL success) {
     
     if(success)
@@ -13,4 +21,8 @@ geocoder
     else {
         //you can debug what's going wrong using: 'geocoder.error'
     }
-}];</code></pre>
+}];
+
+
+//stop geocoding
+[geocoder stopGeocode];</code></pre>
