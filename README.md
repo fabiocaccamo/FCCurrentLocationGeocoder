@@ -1,6 +1,7 @@
 FCCurrentLocationGeocoder
 =========================
 
+##Usage
 ```objective-c
 //create geocoder
 FCCurrentLocationGeocoder * geocoder;
