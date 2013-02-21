@@ -1,7 +1,6 @@
 FCCurrentLocationGeocoder
 =========================
 
-<pre><code>
 ```objective-c
 //create geocoder
 FCCurrentLocationGeocoder * geocoder;
@@ -31,4 +30,3 @@ geocoder = [[FCCurrentLocationGeocoder alloc] initWithTimeout:5.0]; //5 seconds 
 //stop geocoding
 [geocoder stopGeocode];
 ```
-</code></pre>
