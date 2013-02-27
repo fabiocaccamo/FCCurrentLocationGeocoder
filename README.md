@@ -8,7 +8,7 @@ FCCurrentLocationGeocoder * geocoder;
 
 geocoder = [FCCurrentLocationGeocoder geocoder];
 //or
-geocoder = [FCCurrentLocationGeocoder geocoderWithTimeout:10.0]; //5 seconds timeout
+geocoder = [FCCurrentLocationGeocoder geocoderWithTimeout:10.0]; //10 seconds timeout
 //or
 geocoder = [[FCCurrentLocationGeocoder alloc] init];
 //or
