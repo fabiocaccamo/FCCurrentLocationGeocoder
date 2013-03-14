@@ -1,6 +1,11 @@
 FCCurrentLocationGeocoder
 =========================
 
+##Requirements & Dependecies
+
+- iOS >= 5.0
+- CoreLocation Framework
+
 ##Usage
 ```objective-c
 //create geocoder
