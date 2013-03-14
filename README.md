@@ -1,5 +1,6 @@
 FCCurrentLocationGeocoder
 =========================
+Tiny class for detect the user current location
 
 ##Requirements & Dependecies
 
