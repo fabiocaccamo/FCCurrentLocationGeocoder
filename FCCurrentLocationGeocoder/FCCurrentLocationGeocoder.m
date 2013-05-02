@@ -1,5 +1,5 @@
 //
-//  Geolocation.m
+//  FCCurrentLocationGeocoder.m
 //
 //  Created by Fabio Caccamo on 11/08/12.
 //  Copyright (c) 2012 Fabio Caccamo - http://www.fabiocaccamo.com/ - All rights reserved.
