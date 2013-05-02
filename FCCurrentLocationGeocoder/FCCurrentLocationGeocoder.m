@@ -31,6 +31,8 @@
         _geocoding = FALSE;
         
         _location = nil;
+        _locationPlacemarks = nil;
+        _locationPlacemark = nil;
         
         _manager = [[CLLocationManager alloc] init];
         _manager.delegate = self;
@@ -38,6 +40,8 @@
         _manager.desiredAccuracy = kCLLocationAccuracyBest;
         _manager.distanceFilter = 10.0f;
         //[manager startUpdatingLocation];
+        
+        _geocoder = nil;
         
         _error = nil;
         
@@ -89,89 +93,122 @@
     //NSLog(@"FCMapUserLocation didUpdateToLocation %f . %f", latitude, longitude);
     [delegator stopUpdatingLocation];
     
-    [_timer invalidate];
-    _timer = nil;
     
-    _geocoding = FALSE;
-    
-    completion((_location != nil));
-}
-
-
--(void)locationManager:(CLLocationManager *)delegator didFailWithError:(NSError *)error_arg
-{
-    //NSLog(@"FCMapUserLocation didFailWithError %f . %f", latitude, longitude);
-    [delegator stopUpdatingLocation];
-    
-    _location = nil;
-    
-    _error = error_arg;
-    
-    [_timer invalidate];
-    _timer = nil;
-    
-    _geocoding = FALSE;
-    
-    completion(FALSE);
-}
-
-
--(void)startGeocode:(void (^)(BOOL success))completionHandler 
-{
-    if(_geocoding)
+    if(_location != nil)
     {
-        return;
+        if(_geocoder != nil)
+        {
+            [_geocoder reverseGeocodeLocation:_location completionHandler:^(NSArray *placemarks, NSError *error) {
+                
+                if(error != nil)
+                {
+                    [self _finishGeocodeWithError:error];
+                }
+                else {
+                    
+                    if([placemarks count] > 0)
+                    {
+                        _locationPlacemarks = placemarks;
+                        _locationPlacemark = [_locationPlacemarks objectAtIndex:0];
+                        
+                        [self _finishGeocodeWithError:nil];
+                    }
+                    else {
+                        [self _finishGeocodeWithError:[NSError errorWithDomain:kCLErrorDomain code:kCLErrorGeocodeFoundNoResult userInfo:nil]];
+                    }
+                }
+                
+            }];
+        }
+        else {
+            [self _finishGeocodeWithError:nil];
+        }
+    }
+    else {
+        [self _finishGeocodeWithError:[NSError errorWithDomain:kCLErrorDomain code:kCLErrorLocationUnknown userInfo:nil]];
+    }
+}
+
+
+-(void)locationManager:(CLLocationManager *)delegator didFailWithError:(NSError *)error
+{
+    [self cancelGeocode];
+    
+    [self _finishGeocodeWithError:error];
+}
+
+
+-(void)_finishGeocodeWithError:(NSError *)error 
+{
+    _error = error;
+    
+    [_timer invalidate];
+    _timer = nil;
+    
+    if(_error != nil)
+    {
+        completion(FALSE);
+    }
+    else {
+        completion(TRUE);
     }
     
-    _location = nil;
+    completion = nil;
+}
+
+
+-(void)_timeoutGeocode
+{
+    //NSLog(@"timeoutGeocode");
     
-    _error = nil;
+    [self cancelGeocode];
     
-    _timer = [NSTimer scheduledTimerWithTimeInterval:5.0 target:self selector:@selector(timeoutGeocode) userInfo:nil repeats:FALSE];
+    [self _finishGeocodeWithError:[NSError errorWithDomain:kCLErrorDomain code:kCFURLErrorTimedOut userInfo:nil]];
+}
+
+
+-(void)cancelGeocode
+{
+    if(_geocoding){
+        _geocoding = FALSE;
+        
+        [_manager stopUpdatingLocation];
+        
+        if(_geocoder && [_geocoder isGeocoding]){
+            [_geocoder cancelGeocode];
+        }
+        
+        _location = nil;
+        _locationPlacemarks = nil;
+        _locationPlacemark = nil;
+        
+        _error = nil;
+        
+        [_timer invalidate];
+        _timer = nil;
+    }
+}
+
+
+-(void)geocode:(void (^)(BOOL success))completionHandler
+{
+    [self cancelGeocode];
+    
+    completion = completionHandler;
     
     _geocoding = TRUE;
     
-    completion = completionHandler;
+    _timer = [NSTimer scheduledTimerWithTimeInterval:5.0 target:self selector:@selector(_timeoutGeocode) userInfo:nil repeats:FALSE];
     
     [_manager startUpdatingLocation];
 }
 
 
--(void)timeoutGeocode 
+-(void)reverseGeocode:(void (^)(BOOL))completionHandler
 {
-    //NSLog(@"timeoutGeocode");
-    [_manager stopUpdatingLocation];
+    _geocoder = [[CLGeocoder alloc] init];
     
-    _location = nil;
-    
-    _error = [NSError errorWithDomain:kCLErrorDomain code:kCLErrorGeocodeCanceled userInfo:nil];
-    
-    [_timer invalidate];
-    _timer = nil;
-    
-    _geocoding = FALSE;
-    
-    completion(FALSE);
-}
-
-
--(void)stopGeocode 
-{
-    if(!_geocoding)
-    {
-        return;
-    }
-    
-    [_manager stopUpdatingLocation];
-    
-    _location = nil;
-    
-    _error = nil;
-    
-    [_timer invalidate];
-    _timer = nil;
-    
-    _geocoding = FALSE;
+    [self geocode:completionHandler];
 }
 
 

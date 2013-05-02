@@ -14,11 +14,14 @@ void (^completion)(BOOL success);
 @interface FCCurrentLocationGeocoder : NSObject <CLLocationManagerDelegate>
 {
     CLLocationManager * _manager;
+    CLGeocoder * _geocoder;
     NSTimer * _timer;
 }
 
 @property (nonatomic, readonly, getter = isGeocoding) BOOL geocoding;
 @property (nonatomic, readonly, copy) CLLocation * location;
+@property (nonatomic, readonly, copy) NSArray * locationPlacemarks;
+@property (nonatomic, readonly, copy) CLPlacemark * locationPlacemark;
 @property (nonatomic, readonly, strong) NSError * error;
 @property (nonatomic) double timeout;
 
@@ -29,8 +32,9 @@ void (^completion)(BOOL success);
 
 -(id)initWithTimeout:(double)timeout;
 
--(void)startGeocode:(void(^)(BOOL success))completionHandler;
--(void)stopGeocode;
 
+-(void)cancelGeocode;
+-(void)geocode:(void(^)(BOOL success))completionHandler;
+-(void)reverseGeocode:(void(^)(BOOL success))completionHandler;
 
 @end
