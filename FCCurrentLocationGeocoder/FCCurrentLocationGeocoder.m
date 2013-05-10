@@ -140,10 +140,13 @@
 
 -(void)_finishGeocodeWithError:(NSError *)error 
 {
-    _error = error;
+    _geocoder = nil;
+    _geocoding = FALSE;
     
     [_timer invalidate];
     _timer = nil;
+    
+    _error = error;
     
     if(_error != nil)
     {
@@ -153,7 +156,12 @@
         completion(TRUE);
     }
     
-    completion = nil;
+    /*
+    if(!_geocoding)
+    {
+        completion = nil;
+    }
+    */
 }
 
 
@@ -174,8 +182,13 @@
         
         [_manager stopUpdatingLocation];
         
-        if(_geocoder && [_geocoder isGeocoding]){
-            [_geocoder cancelGeocode];
+        if(_geocoder)
+        {
+            if([_geocoder isGeocoding]){
+                [_geocoder cancelGeocode];
+            }
+            
+            _geocoder = nil;
         }
         
         _location = nil;
@@ -198,7 +211,8 @@
     
     _geocoding = TRUE;
     
-    _timer = [NSTimer scheduledTimerWithTimeInterval:5.0 target:self selector:@selector(_timeoutGeocode) userInfo:nil repeats:FALSE];
+    _error = nil;
+    _timer = [NSTimer scheduledTimerWithTimeInterval:_timeout target:self selector:@selector(_timeoutGeocode) userInfo:nil repeats:FALSE];
     
     [_manager startUpdatingLocation];
 }
@@ -206,9 +220,17 @@
 
 -(void)reverseGeocode:(void (^)(BOOL))completionHandler
 {
+    [self cancelGeocode];
+    
+    completion = completionHandler;
+    
+    _geocoding = TRUE;
     _geocoder = [[CLGeocoder alloc] init];
     
-    [self geocode:completionHandler];
+    _error = nil;
+    _timer = [NSTimer scheduledTimerWithTimeInterval:_timeout target:self selector:@selector(_timeoutGeocode) userInfo:nil repeats:FALSE];
+    
+    [_manager startUpdatingLocation];
 }
 
 
