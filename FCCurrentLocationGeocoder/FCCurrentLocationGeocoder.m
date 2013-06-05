@@ -145,7 +145,7 @@
 }
 
 
--(void)_beginGeocodeWithReverse:(BOOL)reverse withCompletionHandler:(void (^)(BOOL success))completionHandler
+-(void)_beginGeocodeWithReverse:(BOOL)reverse andCompletionHandler:(void (^)(BOOL success))completionHandler
 {
     [self cancelGeocode];
     
@@ -246,13 +246,13 @@
 
 -(void)geocode:(void (^)(BOOL success))completionHandler
 {
-    [self _beginGeocodeWithReverse:NO withCompletionHandler:completionHandler];
+    [self _beginGeocodeWithReverse:NO andCompletionHandler:completionHandler];
 }
 
 
 -(void)reverseGeocode:(void (^)(BOOL))completionHandler
 {
-    [self _beginGeocodeWithReverse:YES withCompletionHandler:completionHandler];
+    [self _beginGeocodeWithReverse:YES andCompletionHandler:completionHandler];
 }
 
 
