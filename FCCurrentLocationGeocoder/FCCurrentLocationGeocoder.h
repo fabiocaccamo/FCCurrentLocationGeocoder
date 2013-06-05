@@ -29,9 +29,9 @@ void (^completion)(BOOL success);
 +(id)geocoder;
 +(id)geocoderWithTimeout:(double)timeout;
 
-
 -(id)initWithTimeout:(double)timeout;
 
++(BOOL)canGeocode;
 
 -(void)cancelGeocode;
 -(void)geocode:(void(^)(BOOL success))completionHandler;

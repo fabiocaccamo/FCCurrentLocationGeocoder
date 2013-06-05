@@ -22,13 +22,13 @@
 }
 
 
--(id)init 
+-(id)init
 {
     self = [super init];
     
     if(self)
     {
-        _geocoding = FALSE;
+        _geocoding = NO;
         
         _location = nil;
         _locationPlacemarks = nil;
@@ -53,7 +53,7 @@
 }
 
 
--(id)initWithTimeout:(double)timeoutValue 
+-(id)initWithTimeout:(double)timeoutValue
 {
     self = [self init];
     
@@ -66,7 +66,7 @@
 }
 
 
--(void)setTimeout:(double)value 
+-(void)setTimeout:(double)value
 {
     if(!_geocoding)
     {
@@ -75,7 +75,7 @@
 }
 
 
--(void)locationManager:(CLLocationManager *)delegator didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation 
+-(void)locationManager:(CLLocationManager *)delegator didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation
 {
     CLLocationCoordinate2D newLocationCoordinate = newLocation.coordinate;
     
@@ -85,7 +85,7 @@
         {
             _location = newLocation;
         }
-    } 
+    }
     else {
         _location = nil;
     }
@@ -102,7 +102,7 @@
                 
                 if(error != nil)
                 {
-                    [self _finishGeocodeWithError:error];
+                    [self _endGeocodeWithError:error];
                 }
                 else {
                     
@@ -111,37 +111,70 @@
                         _locationPlacemarks = placemarks;
                         _locationPlacemark = [_locationPlacemarks objectAtIndex:0];
                         
-                        [self _finishGeocodeWithError:nil];
+                        [self _endGeocodeWithError:nil];
                     }
                     else {
-                        [self _finishGeocodeWithError:[NSError errorWithDomain:kCLErrorDomain code:kCLErrorGeocodeFoundNoResult userInfo:nil]];
+                        [self _endGeocodeWithError:[NSError errorWithDomain:kCLErrorDomain code:kCLErrorGeocodeFoundNoResult userInfo:nil]];
                     }
                 }
                 
             }];
         }
         else {
-            [self _finishGeocodeWithError:nil];
+            [self _endGeocodeWithError:nil];
         }
     }
     else {
-        [self _finishGeocodeWithError:[NSError errorWithDomain:kCLErrorDomain code:kCLErrorLocationUnknown userInfo:nil]];
+        [self _endGeocodeWithError:[NSError errorWithDomain:kCLErrorDomain code:kCLErrorLocationUnknown userInfo:nil]];
     }
 }
 
 
 -(void)locationManager:(CLLocationManager *)delegator didFailWithError:(NSError *)error
 {
-    [self cancelGeocode];
-    
-    [self _finishGeocodeWithError:error];
+    if(error.code == kCLErrorLocationUnknown)
+    {
+        //If the location service is unable to retrieve a location right away, it reports a kCLErrorLocationUnknown error and keeps trying. In such a situation, you can simply ignore the error and wait for a new event.
+        //http://developer.apple.com/library/ios/#documentation/CoreLocation/Reference/CLLocationManagerDelegate_Protocol/CLLocationManagerDelegate/CLLocationManagerDelegate.html#//apple_ref/occ/intfm/CLLocationManagerDelegate/locationManager:didFailWithError:
+    }
+    else {
+        [self cancelGeocode];
+        
+        [self _endGeocodeWithError:error];
+    }
 }
 
 
--(void)_finishGeocodeWithError:(NSError *)error 
+-(void)_beginGeocodeWithReverse:(BOOL)reverse withCompletionHandler:(void (^)(BOOL success))completionHandler
+{
+    [self cancelGeocode];
+    
+    completion = completionHandler;
+    
+    if([FCCurrentLocationGeocoder canGeocode])
+    {
+        _geocoding = YES;
+        
+        if(reverse)
+        {
+            _geocoder = [[CLGeocoder alloc] init];
+        }
+        
+        _error = nil;
+        _timer = [NSTimer scheduledTimerWithTimeInterval:_timeout target:self selector:@selector(_timeoutGeocode) userInfo:nil repeats:NO];
+        
+        [_manager startUpdatingLocation];
+    }
+    else {
+        [self _endGeocodeWithError:[NSError errorWithDomain:kCLErrorDomain code:kCLErrorDenied userInfo:nil]];
+    }
+}
+
+
+-(void)_endGeocodeWithError:(NSError *)error
 {
     _geocoder = nil;
-    _geocoding = FALSE;
+    _geocoding = NO;
     
     [_timer invalidate];
     _timer = nil;
@@ -150,18 +183,18 @@
     
     if(_error != nil)
     {
-        completion(FALSE);
+        completion(NO);
     }
     else {
-        completion(TRUE);
+        completion(YES);
     }
     
     /*
-    if(!_geocoding)
-    {
-        completion = nil;
-    }
-    */
+     if(!_geocoding)
+     {
+     completion = nil;
+     }
+     */
 }
 
 
@@ -171,14 +204,22 @@
     
     [self cancelGeocode];
     
-    [self _finishGeocodeWithError:[NSError errorWithDomain:kCLErrorDomain code:kCFURLErrorTimedOut userInfo:nil]];
+    [self _endGeocodeWithError:[NSError errorWithDomain:kCLErrorDomain code:kCFURLErrorTimedOut userInfo:nil]];
+}
+
+
++(BOOL)canGeocode
+{
+    //http://stackoverflow.com/questions/4318708/checking-for-ios-location-services
+    
+    return ([CLLocationManager locationServicesEnabled] && ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorized));
 }
 
 
 -(void)cancelGeocode
 {
     if(_geocoding){
-        _geocoding = FALSE;
+        _geocoding = NO;
         
         [_manager stopUpdatingLocation];
         
@@ -205,32 +246,13 @@
 
 -(void)geocode:(void (^)(BOOL success))completionHandler
 {
-    [self cancelGeocode];
-    
-    completion = completionHandler;
-    
-    _geocoding = TRUE;
-    
-    _error = nil;
-    _timer = [NSTimer scheduledTimerWithTimeInterval:_timeout target:self selector:@selector(_timeoutGeocode) userInfo:nil repeats:FALSE];
-    
-    [_manager startUpdatingLocation];
+    [self _beginGeocodeWithReverse:NO withCompletionHandler:completionHandler];
 }
 
 
 -(void)reverseGeocode:(void (^)(BOOL))completionHandler
 {
-    [self cancelGeocode];
-    
-    completion = completionHandler;
-    
-    _geocoding = TRUE;
-    _geocoder = [[CLGeocoder alloc] init];
-    
-    _error = nil;
-    _timer = [NSTimer scheduledTimerWithTimeInterval:_timeout target:self selector:@selector(_timeoutGeocode) userInfo:nil repeats:FALSE];
-    
-    [_manager startUpdatingLocation];
+    [self _beginGeocodeWithReverse:YES withCompletionHandler:completionHandler];
 }
 
 
