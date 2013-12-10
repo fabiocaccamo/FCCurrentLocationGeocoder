@@ -22,7 +22,7 @@
 }
 
 
--(id)init
+-(id)init 
 {
     self = [super init];
     
@@ -47,13 +47,15 @@
         
         _timer = nil;
         _timeout = 10.0;
+        
+        _prompt = YES;
     }
     
     return self;
 }
 
 
--(id)initWithTimeout:(double)timeoutValue
+-(id)initWithTimeout:(double)timeoutValue 
 {
     self = [self init];
     
@@ -66,7 +68,7 @@
 }
 
 
--(void)setTimeout:(double)value
+-(void)setTimeout:(double)value 
 {
     if(!_geocoding)
     {
@@ -75,7 +77,7 @@
 }
 
 
--(void)locationManager:(CLLocationManager *)delegator didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation
+-(void)locationManager:(CLLocationManager *)delegator didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation 
 {
     CLLocationCoordinate2D newLocationCoordinate = newLocation.coordinate;
     
@@ -85,7 +87,7 @@
         {
             _location = newLocation;
         }
-    }
+    } 
     else {
         _location = nil;
     }
@@ -151,7 +153,9 @@
     
     completion = completionHandler;
     
-    if([FCCurrentLocationGeocoder canGeocode])
+    //NSLog(@"GEOCODE ");
+    
+    if([FCCurrentLocationGeocoder canGeocode] || _prompt)
     {
         _geocoding = YES;
         
@@ -171,7 +175,7 @@
 }
 
 
--(void)_endGeocodeWithError:(NSError *)error
+-(void)_endGeocodeWithError:(NSError *)error 
 {
     _geocoder = nil;
     _geocoding = NO;
@@ -190,11 +194,11 @@
     }
     
     /*
-     if(!_geocoding)
-     {
-     completion = nil;
-     }
-     */
+    if(!_geocoding)
+    {
+        completion = nil;
+    }
+    */
 }
 
 

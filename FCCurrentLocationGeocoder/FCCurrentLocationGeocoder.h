@@ -24,7 +24,7 @@ void (^completion)(BOOL success);
 @property (nonatomic, readonly, copy) CLPlacemark * locationPlacemark;
 @property (nonatomic, readonly, strong) NSError * error;
 @property (nonatomic) double timeout;
-
+@property (nonatomic) BOOL prompt;
 
 +(id)geocoder;
 +(id)geocoderWithTimeout:(double)timeout;
