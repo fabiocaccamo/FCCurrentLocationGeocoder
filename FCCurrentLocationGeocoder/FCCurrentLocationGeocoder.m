@@ -155,7 +155,7 @@
     
     //NSLog(@"GEOCODE ");
     
-    if([FCCurrentLocationGeocoder canGeocode] || _prompt)
+    if([self canGeocode])
     {
         _geocoding = YES;
         
@@ -212,14 +212,6 @@
 }
 
 
-+(BOOL)canGeocode
-{
-    //http://stackoverflow.com/questions/4318708/checking-for-ios-location-services
-    
-    return ([CLLocationManager locationServicesEnabled] && ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorized));
-}
-
-
 -(void)cancelGeocode
 {
     if(_geocoding){
@@ -245,6 +237,14 @@
         [_timer invalidate];
         _timer = nil;
     }
+}
+
+
+-(BOOL)canGeocode
+{
+    //http://stackoverflow.com/questions/4318708/checking-for-ios-location-services
+    
+    return ([CLLocationManager locationServicesEnabled] && (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorized) || (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined) && [self canPromptForAuthorization])));
 }
 
 

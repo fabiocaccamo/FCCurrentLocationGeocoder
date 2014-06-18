@@ -24,16 +24,15 @@ void (^completion)(BOOL success);
 @property (nonatomic, readonly, copy) CLPlacemark * locationPlacemark;
 @property (nonatomic, readonly, strong) NSError * error;
 @property (nonatomic) double timeout;
-@property (nonatomic) BOOL prompt;
+@property (nonatomic, getter = canPromptForAuthorization) BOOL prompt;
 
 +(id)geocoder;
 +(id)geocoderWithTimeout:(double)timeout;
 
 -(id)initWithTimeout:(double)timeout;
 
-+(BOOL)canGeocode;
-
 -(void)cancelGeocode;
+-(BOOL)canGeocode;
 -(void)geocode:(void(^)(BOOL success))completionHandler;
 -(void)reverseGeocode:(void(^)(BOOL success))completionHandler;
 
