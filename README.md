@@ -1,7 +1,7 @@
 FCCurrentLocationGeocoder
 =========================
 
-**iOS Class on top of LocationManager and CLGeocoder for geocode/reverse-geocode user current location using a block-based syntax.
+iOS Class on top of LocationManager and CLGeocoder for **geocode/reverse-geocode user current location** using a block-based syntax.
 
 ##Requirements & Dependecies
 - iOS >= 5.0
