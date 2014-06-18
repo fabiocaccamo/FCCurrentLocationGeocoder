@@ -1,29 +1,31 @@
 FCCurrentLocationGeocoder
 =========================
-Utility class for geocode / reverse-geocode the user current location.
+
+**iOS Class on top of LocationManager and CLGeocoder for geocode/reverse-geocode user current location using a block-based syntax.
 
 ##Requirements & Dependecies
-
 - iOS >= 5.0
+- ARC enabled
 - CoreLocation Framework
+
+##Installation
+
+####CocoaPods:
+`pod 'FCCurrentLocationGeocoder'`
+
+####Manual install:
+Copy `FCCurrentLocationGeocoder.h` and `FCCurrentLocationGeocoder.m` to your project.
 
 ##Usage
 ```objective-c
-//geocoder creation
-FCCurrentLocationGeocoder * geocoder;
-
-geocoder = [FCCurrentLocationGeocoder geocoder];
-//or
-geocoder = [FCCurrentLocationGeocoder geocoderWithTimeout:10.0]; //10 seconds timeout
-//or
-geocoder = [[FCCurrentLocationGeocoder alloc] init];
-//or
-geocoder = [[FCCurrentLocationGeocoder alloc] initWithTimeout:5.0]; //5 seconds timeout
+//geocoder initialization
+FCCurrentLocationGeocoder * geocoder = [FCCurrentLocationGeocoder geocoder];
+geocoder.timeout = 5; //(optional) you can set timeout-error timeout
 ```
 ```objective-c
-//geocoding
+//current-location forward geocoding
 [geocoder geocode:^(BOOL success) {
-    
+
     if(success)
     {
         //you can access the current location using 'geocoder.location'
@@ -34,9 +36,9 @@ geocoder = [[FCCurrentLocationGeocoder alloc] initWithTimeout:5.0]; //5 seconds 
 }];
 ```
 ```objective-c
-//reverse-geocoding
+//current-location reverse-geocoding
 [geocoder reverseGeocode:^(BOOL success) {
-    
+
     if(success)
     {
         //you can access the current location using 'geocoder.location'
@@ -56,3 +58,5 @@ geocoder = [[FCCurrentLocationGeocoder alloc] initWithTimeout:5.0]; //5 seconds 
 //cancel geocoding
 [geocoder cancelGeocode];
 ```
+
+Enjoy :)
