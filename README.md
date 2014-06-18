@@ -23,7 +23,7 @@ FCCurrentLocationGeocoder * geocoder = [FCCurrentLocationGeocoder geocoder];
 geocoder.timeout = 5; //(optional) you can set timeout-error timeout
 ```
 ```objective-c
-//current-location forward geocoding
+//current-location forward-geocoding
 [geocoder geocode:^(BOOL success) {
 
     if(success)
@@ -52,7 +52,7 @@ geocoder.timeout = 5; //(optional) you can set timeout-error timeout
 ```
 ```objective-c
 //check if geocoding
-[geocoder isGeocoding]; //returns TRUE or FALSE
+[geocoder isGeocoding]; //returns YES or NO
 ```
 ```objective-c
 //cancel geocoding
