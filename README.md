@@ -21,6 +21,11 @@ Copy `FCCurrentLocationGeocoder.h` and `FCCurrentLocationGeocoder.m` to your pro
 //geocoder initialization
 FCCurrentLocationGeocoder * geocoder = [FCCurrentLocationGeocoder geocoder];
 geocoder.timeout = 5; //(optional) you can set timeout-error timeout
+geocoder.canPromptForAuthorization = NO; //(optional)
+```
+```objective-c
+//check if location services are enabled and the current app is authorized or could be authorized
+[geocoder canGeocode]; //returns YES or NO
 ```
 ```objective-c
 //current-location forward-geocoding
