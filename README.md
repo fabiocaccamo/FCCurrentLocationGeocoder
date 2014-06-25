@@ -20,7 +20,7 @@ Copy `FCCurrentLocationGeocoder.h` and `FCCurrentLocationGeocoder.m` to your pro
 ```objective-c
 //geocoder initialization
 FCCurrentLocationGeocoder * geocoder = [FCCurrentLocationGeocoder geocoder];
-geocoder.timeout = 5; //(optional) you can set timeout-error timeout
+geocoder.timeout = 10; //(optional, default value is 15 seconds) you can set timeout-error timeout
 geocoder.canPromptForAuthorization = NO; //(optional)
 ```
 ```objective-c

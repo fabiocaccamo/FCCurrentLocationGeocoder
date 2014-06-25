@@ -13,16 +13,21 @@ void (^completion)(BOOL success);
 
 @interface FCCurrentLocationGeocoder : NSObject <CLLocationManagerDelegate>
 {
-    CLLocationManager * _manager;
-    CLGeocoder * _geocoder;
-    NSTimer * _timer;
+    CLLocationManager *_manager;
+    
+    CLLocation *_bestLocation;
+    int _bestLocationAttempts;
+    
+    BOOL _reverse;
+    CLGeocoder *_geocoder;
+    NSTimer *_timer;
 }
 
 @property (nonatomic, readonly, getter = isGeocoding) BOOL geocoding;
-@property (nonatomic, readonly, copy) CLLocation * location;
-@property (nonatomic, readonly, copy) NSArray * locationPlacemarks;
-@property (nonatomic, readonly, copy) CLPlacemark * locationPlacemark;
-@property (nonatomic, readonly, strong) NSError * error;
+@property (nonatomic, readonly, copy) CLLocation *location;
+@property (nonatomic, readonly, copy) NSArray *locationPlacemarks;
+@property (nonatomic, readonly, copy) CLPlacemark *locationPlacemark;
+@property (nonatomic, readonly, strong) NSError *error;
 @property (nonatomic) double timeout;
 @property (nonatomic, getter = canPromptForAuthorization) BOOL prompt;
 
