@@ -40,6 +40,11 @@
         _location = nil;
         _locationPlacemarks = nil;
         _locationPlacemark = nil;
+        _locationCountry = nil;
+        _locationCountryCode = nil;
+        _locationCity = nil;
+        _locationZipCode = nil;
+        _locationAddress = nil;
         
         _reverse = NO;
         _geocoder = nil;
@@ -145,6 +150,11 @@
                 {
                     _locationPlacemarks = placemarks;
                     _locationPlacemark = [_locationPlacemarks objectAtIndex:0];
+                    _locationCountry = _locationPlacemark.country;
+                    _locationCountryCode = _locationPlacemark.ISOcountryCode;
+                    _locationCity = _locationPlacemark.locality;
+                    _locationZipCode = _locationPlacemark.postalCode;
+                    _locationAddress = [[_locationPlacemark.addressDictionary[ @"FormattedAddressLines" ] componentsJoinedByString:@", "] stringByReplacingOccurrencesOfString:@"  " withString:@" "];
                     
                     [self _endGeocodeWithError:nil];
                 }
@@ -177,7 +187,7 @@
 
 -(void)_beginGeocodeWithReverse:(BOOL)reverse andCompletionHandler:(void (^)(BOOL success))completionHandler
 {
-    [self _cancelGeocode];
+    [self _resetGeocode:YES];
     
     completion = completionHandler;
     
@@ -199,13 +209,9 @@
 }
 
 
--(void)_cancelGeocode
+-(void)_cancelGeocoder
 {
-    _geocoding = NO;
-    
-    [_manager stopUpdatingLocation];
-    
-    if(_geocoder)
+    if( _geocoder != nil )
     {
         if( [_geocoder isGeocoding] ){
             [_geocoder cancelGeocode];
@@ -213,48 +219,73 @@
         
         _geocoder = nil;
     }
-    
-    if(_timer)
+}
+
+
+-(void)_cancelTimer
+{
+    if( _timer != nil )
     {
         [_timer invalidate];
         _timer = nil;
     }
-    
-    _reverse = NO;
-    
-    _bestLocation = nil;
-    _bestLocationAttempts = 0;
-    
-    _location = nil;
-    _locationPlacemarks = nil;
-    _locationPlacemark = nil;
-    
-    _error = nil;
-    
-    completion = nil;
 }
 
 
 -(void)_endGeocodeWithError:(NSError *)error 
 {
-    _geocoder = nil;
-    _geocoding = NO;
-    
-    _reverse = NO;
-    
-    if( _timer != nil ){
-        [_timer invalidate];
-        _timer = nil;
+    if( _geocoding ){
+        _geocoding = NO;
+        
+        [self _cancelGeocoder];
+        [self _cancelTimer];
+        
+        _error = error;
+        
+        
+        if(completion != nil)
+        {
+            if(_error != nil)
+            {
+                completion(NO);
+            }
+            else {
+                completion(YES);
+            }
+        }
     }
-    
-    _error = error;
-    
-    if(_error != nil)
-    {
-        completion(NO);
-    }
-    else {
-        completion(YES);
+}
+
+
+-(void)_resetGeocode:(BOOL)force
+{
+    if( _geocoding || force ){
+        _geocoding = NO;
+        
+        _reverse = NO;
+        
+        [_manager stopUpdatingLocation];
+        
+        [self _cancelGeocoder];
+        [self _cancelTimer];
+        
+        _error = nil;
+        
+        
+        _bestLocation = nil;
+        _bestLocationAttempts = 0;
+        
+        _location = nil;
+        _locationPlacemarks = nil;
+        _locationPlacemark = nil;
+        _locationCountry = nil;
+        _locationCountryCode = nil;
+        _locationCity = nil;
+        _locationZipCode = nil;
+        _locationAddress = nil;
+        
+        
+        //completion = nil;
     }
 }
 
@@ -263,7 +294,7 @@
 {
     //NSLog(@"timeoutGeocode");
     
-    [self cancelGeocode];
+    [self _resetGeocode:YES];
     
     [self _endGeocodeWithError:[NSError errorWithDomain:kCLErrorDomain code:kCFURLErrorTimedOut userInfo:nil]];
 }
@@ -271,10 +302,7 @@
 
 -(void)cancelGeocode
 {
-    if(_geocoding)
-    {
-        [self _cancelGeocode];
-    }
+    [self _resetGeocode:NO];
 }
 
 
@@ -292,7 +320,7 @@
 }
 
 
--(void)reverseGeocode:(void (^)(BOOL))completionHandler
+-(void)reverseGeocode:(void (^)(BOOL success))completionHandler
 {
     [self _beginGeocodeWithReverse:YES andCompletionHandler:completionHandler];
 }
