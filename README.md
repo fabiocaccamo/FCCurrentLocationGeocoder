@@ -49,6 +49,11 @@ geocoder.canPromptForAuthorization = NO; //(optional)
         //you can access the current location using 'geocoder.location'
         //you can access the current location placemarks using 'geocoder.locationPlacemarks'
         //you can access the current location first-placemark using 'geocoder.locationPlacemark'
+        //you can access the current location country using 'geocoder.locationCountry'
+        //you can access the current location country-code using 'geocoder.locationCountryCode'
+        //you can access the current location city using 'geocoder.locationCity'
+        //you can access the current location zip-code using 'geocoder.locationZipCode'
+        //you can access the current location address using 'geocoder.locationAddress'
     }
     else {
         //you can debug what's going wrong using: 'geocoder.error'
