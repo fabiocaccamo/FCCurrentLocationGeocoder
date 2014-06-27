@@ -36,12 +36,10 @@ void (^completion)(BOOL success);
 @property (nonatomic) double timeout;
 @property (nonatomic, getter = canPromptForAuthorization) BOOL prompt;
 
-+(id)geocoder;
-+(id)geocoderWithTimeout:(double)timeout;
-
--(id)initWithTimeout:(double)timeout;
-
 -(void)cancelGeocode;
++(BOOL)canGeocodeIfCanPromptForAuthorization:(BOOL)canPromptForAuthorization;
++(BOOL)canGeocodeWithPromptForAuthorization;
++(BOOL)canGeocodeWithoutPromptForAuthorization;
 -(BOOL)canGeocode;
 -(void)geocode:(void(^)(BOOL success))completionHandler;
 -(void)reverseGeocode:(void(^)(BOOL success))completionHandler;

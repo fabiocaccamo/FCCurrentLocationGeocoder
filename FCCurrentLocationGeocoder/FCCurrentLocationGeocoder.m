@@ -10,19 +10,7 @@
 @implementation FCCurrentLocationGeocoder
 
 
-+(id)geocoder
-{
-    return [[FCCurrentLocationGeocoder alloc] init];
-}
-
-
-+(id)geocoderWithTimeout:(double)timeout
-{
-    return [[FCCurrentLocationGeocoder alloc] initWithTimeout:timeout];
-}
-
-
--(id)init 
+-(instancetype)init
 {
     self = [super init];
     
@@ -61,24 +49,17 @@
 }
 
 
--(id)initWithTimeout:(double)timeoutValue 
+-(void)locationManager:(CLLocationManager *)delegator didFailWithError:(NSError *)error
 {
-    self = [self init];
-    
-    if(self)
+    if(error.code == kCLErrorLocationUnknown)
     {
-        self.timeout = timeoutValue;
+        //If the location service is unable to retrieve a location right away, it reports a kCLErrorLocationUnknown error and keeps trying. In such a situation, you can simply ignore the error and wait for a new event.
+        //http://developer.apple.com/library/ios/#documentation/CoreLocation/Reference/CLLocationManagerDelegate_Protocol/CLLocationManagerDelegate/CLLocationManagerDelegate.html#//apple_ref/occ/intfm/CLLocationManagerDelegate/locationManager:didFailWithError:
     }
-    
-    return self;
-}
-
-
--(void)setTimeout:(double)value 
-{
-    if(!_geocoding)
-    {
-        _timeout = MAX(1.0, value);
+    else {
+        [self cancelGeocode];
+        
+        [self _endGeocodeWithError:error];
     }
 }
 
@@ -166,21 +147,6 @@
     }
     else {
         [self _endGeocodeWithError:nil];
-    }
-}
-
-
--(void)locationManager:(CLLocationManager *)delegator didFailWithError:(NSError *)error
-{
-    if(error.code == kCLErrorLocationUnknown)
-    {
-        //If the location service is unable to retrieve a location right away, it reports a kCLErrorLocationUnknown error and keeps trying. In such a situation, you can simply ignore the error and wait for a new event.
-        //http://developer.apple.com/library/ios/#documentation/CoreLocation/Reference/CLLocationManagerDelegate_Protocol/CLLocationManagerDelegate/CLLocationManagerDelegate.html#//apple_ref/occ/intfm/CLLocationManagerDelegate/locationManager:didFailWithError:
-    }
-    else {
-        [self cancelGeocode];
-        
-        [self _endGeocodeWithError:error];
     }
 }
 
@@ -306,11 +272,29 @@
 }
 
 
--(BOOL)canGeocode
++(BOOL)canGeocodeIfCanPromptForAuthorization:(BOOL)canPromptForAuthorization
 {
     //http://stackoverflow.com/questions/4318708/checking-for-ios-location-services
     
-    return ([CLLocationManager locationServicesEnabled] && (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorized) || (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined) && [self canPromptForAuthorization])));
+    return ([CLLocationManager locationServicesEnabled] && (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorized) || (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined) && canPromptForAuthorization)));
+}
+
+
+-(BOOL)canGeocode
+{
+    return [FCCurrentLocationGeocoder canGeocodeIfCanPromptForAuthorization:[self canPromptForAuthorization]];
+}
+
+
++(BOOL)canGeocodeWithPromptForAuthorization
+{
+    return [self canGeocodeIfCanPromptForAuthorization:YES];
+}
+
+
++(BOOL)canGeocodeWithoutPromptForAuthorization
+{
+    return [self canGeocodeIfCanPromptForAuthorization:NO];
 }
 
 
@@ -323,6 +307,15 @@
 -(void)reverseGeocode:(void (^)(BOOL success))completionHandler
 {
     [self _beginGeocodeWithReverse:YES andCompletionHandler:completionHandler];
+}
+
+
+-(void)setTimeout:(double)value
+{
+    if(!_geocoding)
+    {
+        _timeout = MAX(1.0, value);
+    }
 }
 
 
