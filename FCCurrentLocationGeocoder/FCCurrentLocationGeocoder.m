@@ -319,4 +319,17 @@
 }
 
 
++(FCCurrentLocationGeocoder *)sharedGeocoder
+{
+    static FCCurrentLocationGeocoder *instance = nil;
+    static dispatch_once_t token;
+    
+    dispatch_once(&token, ^{
+        instance = [[self alloc] init];
+    });
+    
+    return instance;
+}
+
+
 @end

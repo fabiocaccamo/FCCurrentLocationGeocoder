@@ -43,5 +43,6 @@ void (^completion)(BOOL success);
 -(BOOL)canGeocode;
 -(void)geocode:(void(^)(BOOL success))completionHandler;
 -(void)reverseGeocode:(void(^)(BOOL success))completionHandler;
++(FCCurrentLocationGeocoder *)sharedGeocoder;
 
 @end
