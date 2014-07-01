@@ -34,7 +34,7 @@ void (^completion)(BOOL success);
 @property (nonatomic, readonly, copy) NSString *locationAddress;
 @property (nonatomic, readonly, strong) NSError *error;
 @property (nonatomic) double timeout;
-@property (nonatomic, getter = canPromptForAuthorization) BOOL prompt;
+@property (nonatomic, getter = canPromptForAuthorization) BOOL promptForAuthorization;
 
 -(void)cancelGeocode;
 -(BOOL)canGeocode;

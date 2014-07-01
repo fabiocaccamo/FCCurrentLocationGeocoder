@@ -42,7 +42,7 @@
         _timer = nil;
         _timeout = 15.0;
         
-        _prompt = YES;
+        _promptForAuthorization = YES;
     }
     
     return self;
@@ -274,7 +274,7 @@
 
 -(BOOL)canGeocode
 {
-    return [FCCurrentLocationGeocoder canGeocodeIfCanPromptForAuthorization:[self canPromptForAuthorization]];
+    return [FCCurrentLocationGeocoder canGeocodeIfCanPromptForAuthorization:_promptForAuthorization];
 }
 
 
