@@ -272,23 +272,23 @@
 }
 
 
-+(BOOL)canGeocodeIfCanPromptForAuthorization:(BOOL)canPromptForAuthorization
-{
-    //http://stackoverflow.com/questions/4318708/checking-for-ios-location-services
-    
-    return ([CLLocationManager locationServicesEnabled] && (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorized) || (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined) && canPromptForAuthorization)));
-}
-
-
 -(BOOL)canGeocode
 {
     return [FCCurrentLocationGeocoder canGeocodeIfCanPromptForAuthorization:[self canPromptForAuthorization]];
 }
 
 
-+(BOOL)canGeocodeWithPromptForAuthorization
++(BOOL)canGeocode
 {
     return [self canGeocodeIfCanPromptForAuthorization:YES];
+}
+
+
++(BOOL)canGeocodeIfCanPromptForAuthorization:(BOOL)canPromptForAuthorization
+{
+    //http://stackoverflow.com/questions/4318708/checking-for-ios-location-services
+    
+    return ([CLLocationManager locationServicesEnabled] && (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorized) || (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined) && canPromptForAuthorization)));
 }
 
 

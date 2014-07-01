@@ -37,10 +37,9 @@ void (^completion)(BOOL success);
 @property (nonatomic, getter = canPromptForAuthorization) BOOL prompt;
 
 -(void)cancelGeocode;
-+(BOOL)canGeocodeIfCanPromptForAuthorization:(BOOL)canPromptForAuthorization;
-+(BOOL)canGeocodeWithPromptForAuthorization;
-+(BOOL)canGeocodeWithoutPromptForAuthorization;
 -(BOOL)canGeocode;
++(BOOL)canGeocode;
++(BOOL)canGeocodeWithoutPromptForAuthorization;
 -(void)geocode:(void(^)(BOOL success))completionHandler;
 -(void)reverseGeocode:(void(^)(BOOL success))completionHandler;
 +(FCCurrentLocationGeocoder *)sharedGeocoder;
