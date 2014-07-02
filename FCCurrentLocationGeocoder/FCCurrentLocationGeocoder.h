@@ -16,7 +16,9 @@ void (^completion)(BOOL success);
     CLLocationManager *_manager;
     
     CLLocation *_bestLocation;
-    int _bestLocationAttempts;
+    NSTimeInterval _bestLocationAttemptMaxDelay;
+    int _bestLocationAttemptsCounter;
+    int _bestLocationAttemptsLimit;
     
     BOOL _reverse;
     CLGeocoder *_reverseGeocoder;

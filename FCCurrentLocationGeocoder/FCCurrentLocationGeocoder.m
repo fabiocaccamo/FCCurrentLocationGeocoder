@@ -42,21 +42,16 @@
         _manager.desiredAccuracy = kCLLocationAccuracyBest;
         
         _bestLocation = nil;
-        _bestLocationAttempts = 0;
-        
-        _location = nil;
-        _locationPlacemarks = nil;
-        _locationPlacemark = nil;
-        _locationCountry = nil;
-        _locationCountryCode = nil;
-        _locationCity = nil;
-        _locationZipCode = nil;
-        _locationAddress = nil;
+        _bestLocationAttemptMaxDelay = 1;
+        _bestLocationAttemptsCounter = 0;
+        _bestLocationAttemptsLimit = 3;
         
         _reverse = NO;
         _reverseGeocoder = nil;
         
         _error = nil;
+        
+        [self _resetLocation];
     }
     
     return self;
@@ -124,6 +119,20 @@
 
 -(void)locationManager:(CLLocationManager *)delegator didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation 
 {
+    [self locationManagerDidUpdateToLocation:newLocation];
+}
+
+
+-(void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations
+{
+    CLLocation *newLocation = [locations lastObject];
+    
+    [self locationManagerDidUpdateToLocation:newLocation];
+}
+
+
+-(void)locationManagerDidUpdateToLocation:(CLLocation *)newLocation
+{
     if( newLocation == nil || newLocation.horizontalAccuracy < 0 )
     {
         return;
@@ -148,20 +157,32 @@
         _bestLocation = newLocation;
     }
     
-    //NSLog(@"FCCurrentLocationGeocoder didUpdateToLocation %f, %f ### accuracy: %f / %f", newLocationCoordinate.latitude, newLocationCoordinate.longitude, newLocation.horizontalAccuracy, delegator.desiredAccuracy);
+    //NSLog(@"FCCurrentLocationGeocoder didUpdateToLocation %f, %f ### horizontalAccuracy: %f", newLocationCoordinate.latitude, newLocationCoordinate.longitude, newLocation.horizontalAccuracy);
     
-    if( _bestLocation.horizontalAccuracy > 100 )
+    if(_bestLocationAttemptMaxDelay < _timeoutErrorDelay)
     {
-        _bestLocationAttempts++;
+        [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(locationManagerDidUpdateToBestLocation) object:nil];
+        [self performSelector:@selector(locationManagerDidUpdateToBestLocation) withObject:nil afterDelay:_bestLocationAttemptMaxDelay];
         
-        //NSLog(@"FCCurrentLocationGeocoder bestLocationAttempts: %i / 3", _bestLocationAttempts);
-        
-        if( _bestLocationAttempts < 3 )
+        if( _bestLocation.horizontalAccuracy > 100 )
         {
-            return;
+            _bestLocationAttemptsCounter++;
+            
+            //NSLog(@"FCCurrentLocationGeocoder bestLocationAttempts: %i / %i", _bestLocationAttemptsCounter, _bestLocationAttemptsLimit);
+            
+            if( _bestLocationAttemptsCounter < _bestLocationAttemptsLimit )
+            {
+                return;
+            }
         }
     }
     
+    [self locationManagerDidUpdateToBestLocation];
+}
+
+
+-(void)locationManagerDidUpdateToBestLocation
+{
     _location = _bestLocation;
     
     [self _cancelAndResetForwardGeocode];
@@ -171,21 +192,27 @@
 
 -(void)_startGeocodeWithReverse:(BOOL)reverse andCompletionHandler:(void (^)(BOOL success))completionHandler
 {
-    if(!_geocoding && _error == nil && _location != nil && ([[_location.timestamp dateByAddingTimeInterval:_timeFilter] timeIntervalSinceNow] > 0)){
+    if(!_geocoding && _location != nil && ([[_location.timestamp dateByAddingTimeInterval:_timeFilter] timeIntervalSinceNow] > 0)){
         _geocoding = YES;
         
         completion = completionHandler;
         
         //NSLog(@"FCCurrentLocationGeocoder useCache: YES");
         
-        if( _reverse != reverse ){
-            _reverse = reverse;
-            
-            [self _reverseGeocodeIfNeededOrCompleteGeocode];
+        if( _reverse == reverse )
+        {
+            [self _completeGeocodeWithError:nil];
         }
         else {
             
-            [self _completeGeocodeWithError:nil];
+            _reverse = reverse;
+            
+            if(!_reverse)
+            {
+                [self _resetLocationReverseInfo];
+            }
+            
+            [self _reverseGeocodeIfNeededOrCompleteGeocode];
         }
     }
     else {
@@ -228,14 +255,7 @@
         
         _error = nil;
         
-        _location = nil;
-        _locationPlacemarks = nil;
-        _locationPlacemark = nil;
-        _locationCountry = nil;
-        _locationCountryCode = nil;
-        _locationCity = nil;
-        _locationZipCode = nil;
-        _locationAddress = nil;
+        [self _resetLocation];
         
         //completion = nil;
     }
@@ -244,12 +264,14 @@
 
 -(void)_cancelAndResetForwardGeocode
 {
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(locationManagerDidUpdateToBestLocation) object:nil];
+    
     if( _manager ){
         [_manager stopUpdatingLocation];
     }
     
     _bestLocation = nil;
-    _bestLocationAttempts = 0;
+    _bestLocationAttemptsCounter = 0;
 }
 
 
@@ -283,8 +305,9 @@
     if( _geocoding ){
         _geocoding = NO;
         
-        [self _cancelAndResetReverseGeocode];
         [self _cancelAndResetTimeoutErrorTimer];
+        [self _cancelAndResetForwardGeocode];
+        [self _cancelAndResetReverseGeocode];
         
         _error = error;
         
@@ -292,13 +315,35 @@
         {
             if(_error != nil)
             {
-                completion(NO);
+                [self _resetLocation];
+                
+                completion( NO );
             }
             else {
-                completion(YES);
+                completion( YES );
             }
         }
     }
+}
+
+
+-(void)_resetLocation
+{
+    _location = nil;
+    
+    [self _resetLocationReverseInfo];
+}
+
+
+-(void)_resetLocationReverseInfo
+{
+    _locationPlacemarks = nil;
+    _locationPlacemark = nil;
+    _locationCountry = nil;
+    _locationCountryCode = nil;
+    _locationCity = nil;
+    _locationZipCode = nil;
+    _locationAddress = nil;
 }
 
 
@@ -334,14 +379,6 @@
         }];
     }
     else {
-        
-        _locationPlacemarks = nil;
-        _locationPlacemark = nil;
-        _locationCountry = nil;
-        _locationCountryCode = nil;
-        _locationCity = nil;
-        _locationZipCode = nil;
-        _locationAddress = nil;
         
         [self _completeGeocodeWithError:nil];
     }
