@@ -42,7 +42,8 @@
         _manager.desiredAccuracy = kCLLocationAccuracyBest;
         
         _bestLocation = nil;
-        _bestLocationAttemptMaxDelay = 1;
+        _bestLocationAttemptsTimeoutTimer = nil;
+        _bestLocationAttemptTimeout = 1;
         _bestLocationAttemptsCounter = 0;
         _bestLocationAttemptsLimit = 3;
         
@@ -117,7 +118,7 @@
 }
 
 
--(void)locationManager:(CLLocationManager *)delegator didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation 
+-(void)locationManager:(CLLocationManager *)delegator didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation
 {
     [self locationManagerDidUpdateToLocation:newLocation];
 }
@@ -159,10 +160,9 @@
     
     //NSLog(@"FCCurrentLocationGeocoder didUpdateToLocation %f, %f ### horizontalAccuracy: %f", newLocationCoordinate.latitude, newLocationCoordinate.longitude, newLocation.horizontalAccuracy);
     
-    if((_bestLocationAttemptMaxDelay * _bestLocationAttemptsLimit) < _timeoutErrorDelay || _timeoutErrorDelay <= 0 )
+    if((_bestLocationAttemptTimeout * _bestLocationAttemptsLimit) < _timeoutErrorDelay || _timeoutErrorDelay <= 0 )
     {
-        [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(locationManagerDidUpdateToBestLocation) object:nil];
-        [self performSelector:@selector(locationManagerDidUpdateToBestLocation) withObject:nil afterDelay:_bestLocationAttemptMaxDelay];
+        _bestLocationAttemptsTimeoutTimer = [NSTimer scheduledTimerWithTimeInterval:_bestLocationAttemptTimeout target:self selector:@selector(locationManagerDidUpdateToBestLocation) userInfo:nil repeats:NO];
         
         if( _bestLocation.horizontalAccuracy > 100 )
         {
@@ -264,7 +264,11 @@
 
 -(void)_cancelAndResetForwardGeocode
 {
-    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(locationManagerDidUpdateToBestLocation) object:nil];
+    if( _bestLocationAttemptsTimeoutTimer != nil ){
+        [_bestLocationAttemptsTimeoutTimer invalidate];
+        
+        _bestLocationAttemptsTimeoutTimer = nil;
+    }
     
     if( _manager ){
         [_manager stopUpdatingLocation];

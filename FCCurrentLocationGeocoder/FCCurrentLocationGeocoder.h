@@ -16,7 +16,8 @@ void (^completion)(BOOL success);
     CLLocationManager *_manager;
     
     CLLocation *_bestLocation;
-    NSTimeInterval _bestLocationAttemptMaxDelay;
+    NSTimer *_bestLocationAttemptTimeoutTimer;
+    NSTimeInterval _bestLocationAttemptTimeout;
     int _bestLocationAttemptsCounter;
     int _bestLocationAttemptsLimit;
     
