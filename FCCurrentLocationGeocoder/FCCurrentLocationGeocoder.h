@@ -12,8 +12,8 @@ void (^completion)(BOOL success);
 
 @interface FCCurrentLocationGeocoder : NSObject <CLLocationManagerDelegate>
 {
-    NSTimer *_timer;
-    CLLocationManager *_manager;
+    NSTimer *_timeoutErrorTimer;
+    CLLocationManager *_locationManager;
     
     CLLocation *_bestLocation;
     NSTimer *_bestLocationAttemptTimeoutTimer;

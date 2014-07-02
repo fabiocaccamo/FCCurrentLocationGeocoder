@@ -29,7 +29,7 @@
     
     if(self)
     {
-        _timer = nil;
+        _timeoutErrorTimer = nil;
         _timeoutErrorDelay = 15;
         _timeFilter = 5;
         
@@ -37,12 +37,12 @@
         
         _geocoding = NO;
         
-        _manager = [[CLLocationManager alloc] init];
-        _manager.delegate = self;
-        _manager.desiredAccuracy = kCLLocationAccuracyBest;
+        _locationManager = [[CLLocationManager alloc] init];
+        _locationManager.delegate = self;
+        _locationManager.desiredAccuracy = kCLLocationAccuracyBest;
         
         _bestLocation = nil;
-        _bestLocationAttemptsTimeoutTimer = nil;
+        _bestLocationAttemptTimeoutTimer = nil;
         _bestLocationAttemptTimeout = 1;
         _bestLocationAttemptsCounter = 0;
         _bestLocationAttemptsLimit = 3;
@@ -162,7 +162,7 @@
     
     if((_bestLocationAttemptTimeout * _bestLocationAttemptsLimit) < _timeoutErrorDelay || _timeoutErrorDelay <= 0 )
     {
-        _bestLocationAttemptsTimeoutTimer = [NSTimer scheduledTimerWithTimeInterval:_bestLocationAttemptTimeout target:self selector:@selector(locationManagerDidUpdateToBestLocation) userInfo:nil repeats:NO];
+        _bestLocationAttemptTimeoutTimer = [NSTimer scheduledTimerWithTimeInterval:_bestLocationAttemptTimeout target:self selector:@selector(locationManagerDidUpdateToBestLocation) userInfo:nil repeats:NO];
         
         if( _bestLocation.horizontalAccuracy > 100 )
         {
@@ -231,10 +231,10 @@
         {
             if( _timeoutErrorDelay > 0 )
             {
-                _timer = [NSTimer scheduledTimerWithTimeInterval:_timeoutErrorDelay target:self selector:@selector(_timeoutGeocode) userInfo:nil repeats:NO];
+                _timeoutErrorTimer = [NSTimer scheduledTimerWithTimeInterval:_timeoutErrorDelay target:self selector:@selector(_timeoutGeocode) userInfo:nil repeats:NO];
             }
             
-            [_manager startUpdatingLocation];
+            [_locationManager startUpdatingLocation];
         }
         else {
             
@@ -264,14 +264,14 @@
 
 -(void)_cancelAndResetForwardGeocode
 {
-    if( _bestLocationAttemptsTimeoutTimer != nil ){
-        [_bestLocationAttemptsTimeoutTimer invalidate];
+    if( _bestLocationAttemptTimeoutTimer != nil ){
+        [_bestLocationAttemptTimeoutTimer invalidate];
         
-        _bestLocationAttemptsTimeoutTimer = nil;
+        _bestLocationAttemptTimeoutTimer = nil;
     }
     
-    if( _manager ){
-        [_manager stopUpdatingLocation];
+    if( _locationManager ){
+        [_locationManager stopUpdatingLocation];
     }
     
     _bestLocation = nil;
@@ -296,10 +296,10 @@
 
 -(void)_cancelAndResetTimeoutErrorTimer
 {
-    if( _timer != nil )
+    if( _timeoutErrorTimer != nil )
     {
-        [_timer invalidate];
-        _timer = nil;
+        [_timeoutErrorTimer invalidate];
+        _timeoutErrorTimer = nil;
     }
 }
 
