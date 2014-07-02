@@ -1,7 +1,7 @@
 FCCurrentLocationGeocoder
 =========================
 
-iOS Class on top of LocationManager and CLGeocoder for **geocode/reverse-geocode user current location** using a block-based syntax.
+iOS Class on top of LocationManager and CLGeocoder for **geocode / reverse-geocode user current location** using a block-based syntax.
 
 ##Requirements & Dependecies
 - iOS >= 5.0
@@ -21,9 +21,10 @@ Copy `FCCurrentLocationGeocoder.h` and `FCCurrentLocationGeocoder.m` to your pro
 //you can use the shared instance
 [FCCurrentLocationGeocoder sharedGeocoder];
 
-//or create a new geocoder
+//or create a new geocoder and set options
 FCCurrentLocationGeocoder *geocoder = [FCCurrentLocationGeocoder new];
-geocoder.timeout = 10; //(optional, default value is 15 seconds) you can set timeout-error timeout
+geocoder.timeFilter = 30; //(cache duration, optional, default value is 5 seconds)
+geocoder.timeoutErrorDelay = 10; //(optional, default value is 15 seconds)
 geocoder.canPromptForAuthorization = NO; //(optional)
 ```
 ```objective-c
