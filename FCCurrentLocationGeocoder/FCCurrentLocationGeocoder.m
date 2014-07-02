@@ -162,6 +162,11 @@
     
     if((_bestLocationAttemptTimeout * _bestLocationAttemptsLimit) < _timeoutErrorDelay || _timeoutErrorDelay <= 0 )
     {
+        if( _bestLocationAttemptTimeoutTimer != nil ){
+            [_bestLocationAttemptTimeoutTimer invalidate];
+            _bestLocationAttemptTimeoutTimer = nil;
+        }
+        
         _bestLocationAttemptTimeoutTimer = [NSTimer scheduledTimerWithTimeInterval:_bestLocationAttemptTimeout target:self selector:@selector(locationManagerDidUpdateToBestLocation) userInfo:nil repeats:NO];
         
         if( _bestLocation.horizontalAccuracy > 100 )
@@ -266,7 +271,6 @@
 {
     if( _bestLocationAttemptTimeoutTimer != nil ){
         [_bestLocationAttemptTimeoutTimer invalidate];
-        
         _bestLocationAttemptTimeoutTimer = nil;
     }
     
