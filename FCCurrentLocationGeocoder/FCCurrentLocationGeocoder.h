@@ -24,8 +24,8 @@ void (^completion)(BOOL success);
     CLGeocoder *_reverseGeocoder;
 }
 
-@property (nonatomic) NSUInteger timeoutErrorDelay;
-@property (nonatomic) NSUInteger timeFilter;
+@property (nonatomic) NSTimeInterval timeoutErrorDelay;
+@property (nonatomic) NSTimeInterval timeFilter;
 @property (nonatomic, getter = canPromptForAuthorization) BOOL promptForAuthorization;
 
 @property (nonatomic, readonly, getter = isGeocoding) BOOL geocoding;
