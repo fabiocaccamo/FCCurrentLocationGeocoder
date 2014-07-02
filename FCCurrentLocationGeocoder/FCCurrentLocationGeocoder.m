@@ -159,7 +159,7 @@
     
     //NSLog(@"FCCurrentLocationGeocoder didUpdateToLocation %f, %f ### horizontalAccuracy: %f", newLocationCoordinate.latitude, newLocationCoordinate.longitude, newLocation.horizontalAccuracy);
     
-    if(_bestLocationAttemptMaxDelay < _timeoutErrorDelay)
+    if((_bestLocationAttemptMaxDelay * _bestLocationAttemptsLimit) < _timeoutErrorDelay || _timeoutErrorDelay <= 0 )
     {
         [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(locationManagerDidUpdateToBestLocation) object:nil];
         [self performSelector:@selector(locationManagerDidUpdateToBestLocation) withObject:nil afterDelay:_bestLocationAttemptMaxDelay];
