@@ -10,12 +10,31 @@
 @implementation FCCurrentLocationGeocoder
 
 
++(FCCurrentLocationGeocoder *)sharedGeocoder
+{
+    static FCCurrentLocationGeocoder *instance = nil;
+    static dispatch_once_t token;
+    
+    dispatch_once(&token, ^{
+        instance = [[self alloc] init];
+    });
+    
+    return instance;
+}
+
+
 -(instancetype)init
 {
     self = [super init];
     
     if(self)
     {
+        _timer = nil;
+        _timeoutErrorDelay = 15;
+        _timeFilter = 5;
+        
+        _promptForAuthorization = YES;
+        
         _geocoding = NO;
         
         _manager = [[CLLocationManager alloc] init];
@@ -35,240 +54,18 @@
         _locationAddress = nil;
         
         _reverse = NO;
-        _geocoder = nil;
+        _reverseGeocoder = nil;
         
         _error = nil;
-        
-        _timer = nil;
-        _timeout = 15.0;
-        
-        _promptForAuthorization = YES;
     }
     
     return self;
 }
 
 
--(void)locationManager:(CLLocationManager *)delegator didFailWithError:(NSError *)error
-{
-    if(error.code == kCLErrorLocationUnknown)
-    {
-        //If the location service is unable to retrieve a location right away, it reports a kCLErrorLocationUnknown error and keeps trying. In such a situation, you can simply ignore the error and wait for a new event.
-        //http://developer.apple.com/library/ios/#documentation/CoreLocation/Reference/CLLocationManagerDelegate_Protocol/CLLocationManagerDelegate/CLLocationManagerDelegate.html#//apple_ref/occ/intfm/CLLocationManagerDelegate/locationManager:didFailWithError:
-    }
-    else {
-        [self cancelGeocode];
-        
-        [self _endGeocodeWithError:error];
-    }
-}
-
-
--(void)locationManager:(CLLocationManager *)delegator didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation 
-{
-    if(newLocation == nil)
-    {
-        return;
-    }
-    
-    if(newLocation.horizontalAccuracy < 0)
-    {
-        return;
-    }
-    
-    NSTimeInterval newLocationAge = -[newLocation.timestamp timeIntervalSinceNow];
-    
-    if(newLocationAge > 5.0)
-    {
-        return;
-    }
-    
-    CLLocationCoordinate2D newLocationCoordinate = newLocation.coordinate;
-    
-    if(!CLLocationCoordinate2DIsValid(newLocationCoordinate))
-    {
-        return;
-    }
-    
-    if(newLocationCoordinate.latitude == 0.0 && newLocationCoordinate.longitude == 0.0)
-    {
-        return;
-    }
-    
-    if( _bestLocation == nil || newLocation.horizontalAccuracy < _bestLocation.horizontalAccuracy )
-    {
-        _bestLocation = newLocation;
-    }
-    
-    //NSLog(@"FCCurrentLocationGeocoder didUpdateToLocation %f, %f ### accuracy: %f / %f", newLocationCoordinate.latitude, newLocationCoordinate.longitude, newLocation.horizontalAccuracy, delegator.desiredAccuracy);
-    
-    if(_bestLocation.horizontalAccuracy > 100)
-    {
-        _bestLocationAttempts++;
-        
-        if( _bestLocationAttempts < 3 )
-        {
-            return;
-        }
-    }
-    
-    [delegator stopUpdatingLocation];
-    
-    _location = _bestLocation;
-    
-    if(_reverse)
-    {
-        _geocoder = [[CLGeocoder alloc] init];
-        [_geocoder reverseGeocodeLocation:_location completionHandler:^(NSArray *placemarks, NSError *error) {
-            
-            if(error != nil)
-            {
-                [self _endGeocodeWithError:error];
-            }
-            else {
-                
-                if([placemarks count] > 0)
-                {
-                    _locationPlacemarks = placemarks;
-                    _locationPlacemark = [_locationPlacemarks objectAtIndex:0];
-                    _locationCountry = _locationPlacemark.country;
-                    _locationCountryCode = _locationPlacemark.ISOcountryCode;
-                    _locationCity = _locationPlacemark.locality;
-                    _locationZipCode = _locationPlacemark.postalCode;
-                    _locationAddress = [[_locationPlacemark.addressDictionary[ @"FormattedAddressLines" ] componentsJoinedByString:@", "] stringByReplacingOccurrencesOfString:@"  " withString:@" "];
-                    
-                    [self _endGeocodeWithError:nil];
-                }
-                else {
-                    [self _endGeocodeWithError:[NSError errorWithDomain:kCLErrorDomain code:kCLErrorGeocodeFoundNoResult userInfo:nil]];
-                }
-            }
-        }];
-    }
-    else {
-        [self _endGeocodeWithError:nil];
-    }
-}
-
-
--(void)_beginGeocodeWithReverse:(BOOL)reverse andCompletionHandler:(void (^)(BOOL success))completionHandler
-{
-    [self _resetGeocode:YES];
-    
-    completion = completionHandler;
-    
-    if([self canGeocode])
-    {
-        _geocoding = YES;
-        
-        _reverse = reverse;
-        
-        _timer = [NSTimer scheduledTimerWithTimeInterval:_timeout target:self selector:@selector(_timeoutGeocode) userInfo:nil repeats:NO];
-        
-        _error = nil;
-        
-        [_manager startUpdatingLocation];
-    }
-    else {
-        [self _endGeocodeWithError:[NSError errorWithDomain:kCLErrorDomain code:kCLErrorDenied userInfo:nil]];
-    }
-}
-
-
--(void)_cancelGeocoder
-{
-    if( _geocoder != nil )
-    {
-        if( [_geocoder isGeocoding] ){
-            [_geocoder cancelGeocode];
-        }
-        
-        _geocoder = nil;
-    }
-}
-
-
--(void)_cancelTimer
-{
-    if( _timer != nil )
-    {
-        [_timer invalidate];
-        _timer = nil;
-    }
-}
-
-
--(void)_endGeocodeWithError:(NSError *)error 
-{
-    if( _geocoding ){
-        _geocoding = NO;
-        
-        [self _cancelGeocoder];
-        [self _cancelTimer];
-        
-        _error = error;
-        
-        
-        if(completion != nil)
-        {
-            if(_error != nil)
-            {
-                completion(NO);
-            }
-            else {
-                completion(YES);
-            }
-        }
-    }
-}
-
-
--(void)_resetGeocode:(BOOL)force
-{
-    if( _geocoding || force ){
-        _geocoding = NO;
-        
-        _reverse = NO;
-        
-        [_manager stopUpdatingLocation];
-        
-        [self _cancelGeocoder];
-        [self _cancelTimer];
-        
-        _error = nil;
-        
-        
-        _bestLocation = nil;
-        _bestLocationAttempts = 0;
-        
-        _location = nil;
-        _locationPlacemarks = nil;
-        _locationPlacemark = nil;
-        _locationCountry = nil;
-        _locationCountryCode = nil;
-        _locationCity = nil;
-        _locationZipCode = nil;
-        _locationAddress = nil;
-        
-        
-        //completion = nil;
-    }
-}
-
-
--(void)_timeoutGeocode
-{
-    //NSLog(@"timeoutGeocode");
-    
-    [self _resetGeocode:YES];
-    
-    [self _endGeocodeWithError:[NSError errorWithDomain:kCLErrorDomain code:kCFURLErrorTimedOut userInfo:nil]];
-}
-
-
 -(void)cancelGeocode
 {
-    [self _resetGeocode:NO];
+    [self _cancelAndResetAllForced:NO];
 }
 
 
@@ -300,35 +97,262 @@
 
 -(void)geocode:(void (^)(BOOL success))completionHandler
 {
-    [self _beginGeocodeWithReverse:NO andCompletionHandler:completionHandler];
+    [self _startGeocodeWithReverse:NO andCompletionHandler:completionHandler];
 }
 
 
 -(void)reverseGeocode:(void (^)(BOOL success))completionHandler
 {
-    [self _beginGeocodeWithReverse:YES andCompletionHandler:completionHandler];
+    [self _startGeocodeWithReverse:YES andCompletionHandler:completionHandler];
 }
 
 
--(void)setTimeout:(double)value
+-(void)locationManager:(CLLocationManager *)delegator didFailWithError:(NSError *)error
 {
-    if(!_geocoding)
+    if(error.code == kCLErrorLocationUnknown)
     {
-        _timeout = MAX(1.0, value);
+        //If the location service is unable to retrieve a location right away, it reports a kCLErrorLocationUnknown error and keeps trying. In such a situation, you can simply ignore the error and wait for a new event.
+        //http://developer.apple.com/library/ios/#documentation/CoreLocation/Reference/CLLocationManagerDelegate_Protocol/CLLocationManagerDelegate/CLLocationManagerDelegate.html#//apple_ref/occ/intfm/CLLocationManagerDelegate/locationManager:didFailWithError:
+    }
+    else {
+        [self cancelGeocode];
+        
+        [self _completeGeocodeWithError:error];
     }
 }
 
 
-+(FCCurrentLocationGeocoder *)sharedGeocoder
+-(void)locationManager:(CLLocationManager *)delegator didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation 
 {
-    static FCCurrentLocationGeocoder *instance = nil;
-    static dispatch_once_t token;
+    if( newLocation == nil || newLocation.horizontalAccuracy < 0 )
+    {
+        return;
+    }
     
-    dispatch_once(&token, ^{
-        instance = [[self alloc] init];
-    });
+    NSTimeInterval newLocationAge = -[newLocation.timestamp timeIntervalSinceNow];
     
-    return instance;
+    if( newLocationAge > 5.0 )
+    {
+        return;
+    }
+    
+    CLLocationCoordinate2D newLocationCoordinate = newLocation.coordinate;
+    
+    if( !CLLocationCoordinate2DIsValid(newLocationCoordinate) || ( newLocationCoordinate.latitude == 0.0 && newLocationCoordinate.longitude == 0.0 ))
+    {
+        return;
+    }
+    
+    if( _bestLocation == nil || newLocation.horizontalAccuracy < _bestLocation.horizontalAccuracy )
+    {
+        _bestLocation = newLocation;
+    }
+    
+    //NSLog(@"FCCurrentLocationGeocoder didUpdateToLocation %f, %f ### accuracy: %f / %f", newLocationCoordinate.latitude, newLocationCoordinate.longitude, newLocation.horizontalAccuracy, delegator.desiredAccuracy);
+    
+    if( _bestLocation.horizontalAccuracy > 100 )
+    {
+        _bestLocationAttempts++;
+        
+        //NSLog(@"FCCurrentLocationGeocoder bestLocationAttempts: %i / 3", _bestLocationAttempts);
+        
+        if( _bestLocationAttempts < 3 )
+        {
+            return;
+        }
+    }
+    
+    _location = _bestLocation;
+    
+    [self _cancelAndResetForwardGeocode];
+    [self _reverseGeocodeIfNeededOrCompleteGeocode];
+}
+
+
+-(void)_startGeocodeWithReverse:(BOOL)reverse andCompletionHandler:(void (^)(BOOL success))completionHandler
+{
+    if(!_geocoding && _error == nil && _location != nil && ([[_location.timestamp dateByAddingTimeInterval:_timeFilter] timeIntervalSinceNow] > 0)){
+        _geocoding = YES;
+        
+        completion = completionHandler;
+        
+        //NSLog(@"FCCurrentLocationGeocoder useCache: YES");
+        
+        if( _reverse != reverse ){
+            _reverse = reverse;
+            
+            [self _reverseGeocodeIfNeededOrCompleteGeocode];
+        }
+        else {
+            
+            [self _completeGeocodeWithError:nil];
+        }
+    }
+    else {
+        
+        [self _cancelAndResetAllForced:YES];
+        
+        _geocoding = YES;
+        
+        completion = completionHandler;
+        
+        //NSLog(@"FCCurrentLocationGeocoder useCache: NO");
+        
+        _reverse = reverse;
+        
+        if( [self canGeocode] )
+        {
+            if( _timeoutErrorDelay > 0 )
+            {
+                _timer = [NSTimer scheduledTimerWithTimeInterval:_timeoutErrorDelay target:self selector:@selector(_timeoutGeocode) userInfo:nil repeats:NO];
+            }
+            
+            [_manager startUpdatingLocation];
+        }
+        else {
+            
+            [self _completeGeocodeWithError:[NSError errorWithDomain:kCLErrorDomain code:kCLErrorDenied userInfo:nil]];
+        }
+    }
+}
+
+
+-(void)_cancelAndResetAllForced:(BOOL)forced
+{
+    if( _geocoding || forced ){
+        _geocoding = NO;
+        
+        [self _cancelAndResetTimeoutErrorTimer];
+        [self _cancelAndResetForwardGeocode];
+        [self _cancelAndResetReverseGeocode];
+        
+        _error = nil;
+        
+        _location = nil;
+        _locationPlacemarks = nil;
+        _locationPlacemark = nil;
+        _locationCountry = nil;
+        _locationCountryCode = nil;
+        _locationCity = nil;
+        _locationZipCode = nil;
+        _locationAddress = nil;
+        
+        //completion = nil;
+    }
+}
+
+
+-(void)_cancelAndResetForwardGeocode
+{
+    if( _manager ){
+        [_manager stopUpdatingLocation];
+    }
+    
+    _bestLocation = nil;
+    _bestLocationAttempts = 0;
+}
+
+
+-(void)_cancelAndResetReverseGeocode
+{
+    _reverse = NO;
+    
+    if( _reverseGeocoder != nil )
+    {
+        if( [_reverseGeocoder isGeocoding] ){
+            [_reverseGeocoder cancelGeocode];
+        }
+        
+        _reverseGeocoder = nil;
+    }
+}
+
+
+-(void)_cancelAndResetTimeoutErrorTimer
+{
+    if( _timer != nil )
+    {
+        [_timer invalidate];
+        _timer = nil;
+    }
+}
+
+
+-(void)_completeGeocodeWithError:(NSError *)error
+{
+    if( _geocoding ){
+        _geocoding = NO;
+        
+        [self _cancelAndResetReverseGeocode];
+        [self _cancelAndResetTimeoutErrorTimer];
+        
+        _error = error;
+        
+        if(completion != nil)
+        {
+            if(_error != nil)
+            {
+                completion(NO);
+            }
+            else {
+                completion(YES);
+            }
+        }
+    }
+}
+
+
+-(void)_reverseGeocodeIfNeededOrCompleteGeocode
+{
+    if( _reverse )
+    {
+        _reverseGeocoder = [[CLGeocoder alloc] init];
+        [_reverseGeocoder reverseGeocodeLocation:_location completionHandler:^(NSArray *placemarks, NSError *error) {
+            
+            if(error != nil)
+            {
+                [self _completeGeocodeWithError:error];
+            }
+            else {
+                
+                if([placemarks count] > 0)
+                {
+                    _locationPlacemarks = placemarks;
+                    _locationPlacemark = [_locationPlacemarks objectAtIndex:0];
+                    _locationCountry = _locationPlacemark.country;
+                    _locationCountryCode = _locationPlacemark.ISOcountryCode;
+                    _locationCity = _locationPlacemark.locality;
+                    _locationZipCode = _locationPlacemark.postalCode;
+                    _locationAddress = [[_locationPlacemark.addressDictionary[ @"FormattedAddressLines" ] componentsJoinedByString:@", "] stringByReplacingOccurrencesOfString:@"  " withString:@" "];
+                    
+                    [self _completeGeocodeWithError:nil];
+                }
+                else {
+                    [self _completeGeocodeWithError:[NSError errorWithDomain:kCLErrorDomain code:kCLErrorGeocodeFoundNoResult userInfo:nil]];
+                }
+            }
+        }];
+    }
+    else {
+        
+        _locationPlacemarks = nil;
+        _locationPlacemark = nil;
+        _locationCountry = nil;
+        _locationCountryCode = nil;
+        _locationCity = nil;
+        _locationZipCode = nil;
+        _locationAddress = nil;
+        
+        [self _completeGeocodeWithError:nil];
+    }
+}
+
+
+-(void)_timeoutGeocode
+{
+    //NSLog(@"FCCurrentLocationGeocoder timeoutGeocode");
+    
+    [self _completeGeocodeWithError:[NSError errorWithDomain:kCLErrorDomain code:kCFURLErrorTimedOut userInfo:nil]];
 }
 
 

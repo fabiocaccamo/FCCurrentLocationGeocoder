@@ -8,20 +8,23 @@
 #import <Foundation/Foundation.h>
 #import <CoreLocation/CoreLocation.h>
 
-
 void (^completion)(BOOL success);
 
 @interface FCCurrentLocationGeocoder : NSObject <CLLocationManagerDelegate>
 {
+    NSTimer *_timer;
     CLLocationManager *_manager;
     
     CLLocation *_bestLocation;
     int _bestLocationAttempts;
     
     BOOL _reverse;
-    CLGeocoder *_geocoder;
-    NSTimer *_timer;
+    CLGeocoder *_reverseGeocoder;
 }
+
+@property (nonatomic) NSUInteger timeoutErrorDelay;
+@property (nonatomic) NSUInteger timeFilter;
+@property (nonatomic, getter = canPromptForAuthorization) BOOL promptForAuthorization;
 
 @property (nonatomic, readonly, getter = isGeocoding) BOOL geocoding;
 @property (nonatomic, readonly, copy) CLLocation *location;
@@ -33,8 +36,6 @@ void (^completion)(BOOL success);
 @property (nonatomic, readonly, copy) NSString *locationZipCode;
 @property (nonatomic, readonly, copy) NSString *locationAddress;
 @property (nonatomic, readonly, strong) NSError *error;
-@property (nonatomic) double timeout;
-@property (nonatomic, getter = canPromptForAuthorization) BOOL promptForAuthorization;
 
 -(void)cancelGeocode;
 -(BOOL)canGeocode;
