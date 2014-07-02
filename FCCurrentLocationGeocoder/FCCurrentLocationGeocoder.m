@@ -33,7 +33,7 @@
         _timeoutErrorDelay = 15;
         _timeFilter = 5;
         
-        _promptForAuthorization = YES;
+        _canPromptForAuthorization = YES;
         
         _geocoding = NO;
         
@@ -66,7 +66,7 @@
 
 -(BOOL)canGeocode
 {
-    return [FCCurrentLocationGeocoder canGeocodeIfCanPromptForAuthorization:_promptForAuthorization];
+    return [FCCurrentLocationGeocoder canGeocodeIfCanPromptForAuthorization:_canPromptForAuthorization];
 }
 
 

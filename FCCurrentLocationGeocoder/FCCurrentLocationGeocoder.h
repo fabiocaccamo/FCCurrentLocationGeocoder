@@ -26,7 +26,7 @@ void (^completion)(BOOL success);
 
 @property (nonatomic) NSTimeInterval timeoutErrorDelay;
 @property (nonatomic) NSTimeInterval timeFilter;
-@property (nonatomic, getter = canPromptForAuthorization) BOOL promptForAuthorization;
+@property (nonatomic) BOOL canPromptForAuthorization;
 
 @property (nonatomic, readonly, getter = isGeocoding) BOOL geocoding;
 @property (nonatomic, readonly, copy) CLLocation *location;
