@@ -8,11 +8,13 @@
 #import <Foundation/Foundation.h>
 #import <CoreLocation/CoreLocation.h>
 
-void (^completion)(BOOL success);
 
 @interface FCCurrentLocationGeocoder : NSObject <CLLocationManagerDelegate>
 {
+    void (^_completionHandler)(BOOL success);
+    
     NSTimer *_timeoutErrorTimer;
+    
     CLLocationManager *_locationManager;
     
     CLLocation *_bestLocation;
@@ -21,7 +23,7 @@ void (^completion)(BOOL success);
     int _bestLocationAttemptsCounter;
     int _bestLocationAttemptsLimit;
     
-    BOOL _reverse;
+    BOOL _reverseNeeded;
     CLGeocoder *_reverseGeocoder;
 }
 
