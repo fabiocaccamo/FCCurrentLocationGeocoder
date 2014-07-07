@@ -86,6 +86,12 @@ static NSMutableDictionary *instances = nil;
 }
 
 
++(void)cancelGeocode
+{
+    [[self sharedGeocoder] cancelGeocode];
+}
+
+
 -(BOOL)canGeocode
 {
     return [FCCurrentLocationGeocoder canGeocodeIfCanPromptForAuthorization:_canPromptForAuthorization];
@@ -118,6 +124,11 @@ static NSMutableDictionary *instances = nil;
     
     [self _startGeocodeWithCompletion:completionHandler];
 }
+
+
++(void)geocode:(void (^)(BOOL))completionHandler
+{
+    [[self sharedGeocoder] geocode:completionHandler];
 }
 
 
@@ -127,6 +138,11 @@ static NSMutableDictionary *instances = nil;
     
     [self _startGeocodeWithCompletion:completionHandler];
 }
+
+
++(void)reverseGeocode:(void (^)(BOOL))completionHandler
+{
+    [[self sharedGeocoder] reverseGeocode:completionHandler];
 }
 
 

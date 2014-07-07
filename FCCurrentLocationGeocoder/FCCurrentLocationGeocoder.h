@@ -45,13 +45,19 @@
 
 @property (nonatomic, readonly, strong) NSError *error;
 
+
 -(void)cancelGeocode;
++(void)cancelGeocode;
 -(BOOL)canGeocode;
 +(BOOL)canGeocode;
 +(BOOL)canGeocodeWithoutPromptForAuthorization;
 -(void)geocode:(void(^)(BOOL success))completionHandler;
++(void)geocode:(void(^)(BOOL success))completionHandler;
 -(void)reverseGeocode:(void(^)(BOOL success))completionHandler;
++(void)reverseGeocode:(void(^)(BOOL success))completionHandler;
+
 +(FCCurrentLocationGeocoder *)sharedGeocoder;
 +(FCCurrentLocationGeocoder *)sharedGeocoderForKey:(NSString *)key;
+
 
 @end
