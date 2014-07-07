@@ -28,7 +28,7 @@ Copy `FCCurrentLocationGeocoder.h` and `FCCurrentLocationGeocoder.m` to your pro
 FCCurrentLocationGeocoder *geocoder = [FCCurrentLocationGeocoder new];
 geocoder.timeFilter = 30; //(cache duration, optional, default value is 5 seconds)
 geocoder.timeoutErrorDelay = 10; //(optional, default value is 15 seconds)
-geocoder.canPromptForAuthorization = NO; //(optional)
+geocoder.canPromptForAuthorization = NO; //(optional, default value is YES)
 ```
 ```objective-c
 //check if location services are enabled and the current app is authorized or could be authorized
