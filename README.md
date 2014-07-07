@@ -21,6 +21,9 @@ Copy `FCCurrentLocationGeocoder.h` and `FCCurrentLocationGeocoder.m` to your pro
 //you can use the shared instance
 [FCCurrentLocationGeocoder sharedGeocoder];
 
+//you can also use as many shared instances as you need
+[FCCurrentLocationGeocoder sharedGeocoderForKey:@"yourKey"];
+
 //or create a new geocoder and set options
 FCCurrentLocationGeocoder *geocoder = [FCCurrentLocationGeocoder new];
 geocoder.timeFilter = 30; //(cache duration, optional, default value is 5 seconds)

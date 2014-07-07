@@ -23,6 +23,27 @@
 }
 
 
+static NSMutableDictionary *instances = nil;
+
+
++(FCCurrentLocationGeocoder *)sharedGeocoderForKey:(NSString *)key
+{
+    if( instances == nil ){
+        instances = [NSMutableDictionary new];
+    }
+    
+    FCCurrentLocationGeocoder *instance = [instances objectForKey:key];
+    
+    if( instance == nil ){
+        instance = [FCCurrentLocationGeocoder new];
+        
+        [instances setObject:instance forKey:key];
+    }
+    
+    return instance;
+}
+
+
 -(instancetype)init
 {
     self = [super init];

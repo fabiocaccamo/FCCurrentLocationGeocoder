@@ -50,5 +50,6 @@ void (^completion)(BOOL success);
 -(void)geocode:(void(^)(BOOL success))completionHandler;
 -(void)reverseGeocode:(void(^)(BOOL success))completionHandler;
 +(FCCurrentLocationGeocoder *)sharedGeocoder;
++(FCCurrentLocationGeocoder *)sharedGeocoderForKey:(NSString *)key;
 
 @end
