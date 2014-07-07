@@ -54,6 +54,7 @@ static NSMutableDictionary *instances = nil;
         _timeoutErrorDelay = 15;
         _timeFilter = 5;
         
+        _canFallbackToGeoIP = NO;
         _canPromptForAuthorization = YES;
         
         _geocoding = NO;
@@ -74,6 +75,10 @@ static NSMutableDictionary *instances = nil;
         _error = nil;
         
         [self _resetLocation];
+        
+        _geoIPURL = [NSURL URLWithString:@"http://freegeoip.net/json/"];
+        _geoIPRequest = [NSURLRequest requestWithURL:_geoIPURL];
+        _geoIPOperationQueue = [NSOperationQueue new];
     }
     
     return self;
@@ -94,27 +99,27 @@ static NSMutableDictionary *instances = nil;
 
 -(BOOL)canGeocode
 {
-    return [FCCurrentLocationGeocoder canGeocodeIfCanPromptForAuthorization:_canPromptForAuthorization];
+    return [FCCurrentLocationGeocoder canGeocodeIfCanPromptForAuthorization:_canPromptForAuthorization andIfCanFallbackToGeoIP:_canFallbackToGeoIP];
 }
 
 
 +(BOOL)canGeocode
 {
-    return [self canGeocodeIfCanPromptForAuthorization:YES];
+    return [self canGeocodeIfCanPromptForAuthorization:YES andIfCanFallbackToGeoIP:NO];
 }
 
 
-+(BOOL)canGeocodeIfCanPromptForAuthorization:(BOOL)canPromptForAuthorization
++(BOOL)canGeocodeIfCanPromptForAuthorization:(BOOL)canPromptForAuthorization andIfCanFallbackToGeoIP:(BOOL)canFallbackToGeoIP
 {
     //http://stackoverflow.com/questions/4318708/checking-for-ios-location-services
     
-    return ([CLLocationManager locationServicesEnabled] && (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorized) || (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined) && canPromptForAuthorization)));
+    return ([CLLocationManager locationServicesEnabled] && (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorized) || (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined) && canPromptForAuthorization))) || canFallbackToGeoIP;
 }
 
 
 +(BOOL)canGeocodeWithoutPromptForAuthorization
 {
-    return [self canGeocodeIfCanPromptForAuthorization:NO];
+    return [self canGeocodeIfCanPromptForAuthorization:NO andIfCanFallbackToGeoIP:NO];
 }
 
 
@@ -154,9 +159,19 @@ static NSMutableDictionary *instances = nil;
         //http://developer.apple.com/library/ios/#documentation/CoreLocation/Reference/CLLocationManagerDelegate_Protocol/CLLocationManagerDelegate/CLLocationManagerDelegate.html#//apple_ref/occ/intfm/CLLocationManagerDelegate/locationManager:didFailWithError:
     }
     else {
-        [self cancelGeocode];
         
-        [self _completeGeocodeWithError:error];
+        if( _canFallbackToGeoIP )
+        {
+            [self _cancelAndResetForwardGeocode];
+            
+            [self _forwardGeocodeWithGeoIP];
+        }
+        else {
+            
+            [self cancelGeocode];
+            
+            [self _completeGeocodeWithError:error];
+        }
     }
 }
 
@@ -284,6 +299,7 @@ static NSMutableDictionary *instances = nil;
 {
     [self _cancelAndResetTimeoutErrorTimer];
     [self _cancelAndResetForwardGeocode];
+    [self _cancelAndResetForwardGeocodeWithGeoIP];
     [self _cancelAndResetReverseGeocode];
 }
 
@@ -301,6 +317,14 @@ static NSMutableDictionary *instances = nil;
     
     _bestLocation = nil;
     _bestLocationAttemptsCounter = 0;
+}
+
+
+-(void)_cancelAndResetForwardGeocodeWithGeoIP
+{
+    if( _geoIPOperationQueue != nil ){
+        [_geoIPOperationQueue cancelAllOperations];
+    }
 }
 
 
@@ -359,6 +383,65 @@ static NSMutableDictionary *instances = nil;
             }
         }
     }
+}
+
+
+-(void)_forwardGeocode
+{
+    if( _timeoutErrorDelay > 0 )
+    {
+        _timeoutErrorTimer = [NSTimer scheduledTimerWithTimeInterval:_timeoutErrorDelay target:self selector:@selector(_timeoutGeocode) userInfo:nil repeats:NO];
+    }
+    
+    if( [self canGeocode] )
+    {
+        [_locationManager startUpdatingLocation];
+    }
+    else if( _canFallbackToGeoIP )
+    {
+        [self _forwardGeocodeWithGeoIP];
+    }
+    else {
+        
+        [self _completeGeocodeWithError:[NSError errorWithDomain:kCLErrorDomain code:kCLErrorDenied userInfo:nil]];
+    }
+}
+
+
+-(void)_forwardGeocodeWithGeoIP
+{
+    [self _cancelAndResetForwardGeocodeWithGeoIP];
+    
+    [NSURLConnection sendAsynchronousRequest:_geoIPRequest queue:_geoIPOperationQueue completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
+        
+        if( connectionError == nil )
+        {
+            NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+            
+            if( httpResponse.statusCode == 200 )
+            {
+                NSError *dataError = nil;
+                NSDictionary *dataJSON = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:&dataError];
+                
+                if( dataError == nil )
+                {
+                    CLLocationDegrees dataLatitude = [[dataJSON objectForKey:@"latitude"] doubleValue];
+                    CLLocationDegrees dataLongitude = [[dataJSON objectForKey:@"longitude"] doubleValue];
+                    CLLocation *dataLocation = [[CLLocation alloc] initWithLatitude:dataLatitude longitude:dataLongitude];
+                    
+                    [self _completeForwardGeocodeWithLocation:dataLocation];
+                }
+                else {
+                    
+                    [self _completeGeocodeWithError:dataError];
+                }
+            }
+        }
+        else {
+            
+            [self _completeGeocodeWithError:connectionError];
+        }
+    }];
 }
 
 

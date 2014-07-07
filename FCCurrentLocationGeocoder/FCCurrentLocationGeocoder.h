@@ -23,10 +23,16 @@
     int _bestLocationAttemptsCounter;
     int _bestLocationAttemptsLimit;
     
+    NSURL *_geoIPURL;
+    NSURLRequest *_geoIPRequest;
+    NSOperationQueue *_geoIPOperationQueue;
+    
     BOOL _reverseNeeded;
     CLGeocoder *_reverseGeocoder;
 }
 
+
+@property (nonatomic, readwrite) BOOL canFallbackToGeoIP;
 @property (nonatomic, readwrite) BOOL canPromptForAuthorization;
 
 @property (nonatomic, readwrite) NSTimeInterval timeFilter;
