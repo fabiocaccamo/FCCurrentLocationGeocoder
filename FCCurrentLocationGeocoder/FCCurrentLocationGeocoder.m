@@ -60,7 +60,7 @@ static NSMutableDictionary *instances = nil;
         
         _locationManager = [[CLLocationManager alloc] init];
         _locationManager.delegate = self;
-        _locationManager.desiredAccuracy = kCLLocationAccuracyBest;
+        _locationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation;
         
         _bestLocation = nil;
         _bestLocationAttemptTimeoutTimer = nil;
