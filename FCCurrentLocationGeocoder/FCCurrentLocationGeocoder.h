@@ -7,6 +7,7 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreLocation/CoreLocation.h>
+#import "FCIPAddressGeocoder.h"
 
 
 @interface FCCurrentLocationGeocoder : NSObject <CLLocationManagerDelegate>
@@ -23,9 +24,7 @@
     int _bestLocationAttemptsCounter;
     int _bestLocationAttemptsLimit;
     
-    NSURL *_geoIPURL;
-    NSURLRequest *_geoIPRequest;
-    NSOperationQueue *_geoIPOperationQueue;
+    FCIPAddressGeocoder *_IPAddressGeocoder;
     
     BOOL _reverseNeeded;
     CLGeocoder *_reverseGeocoder;

@@ -80,10 +80,6 @@ static NSMutableDictionary *instances = nil;
         _error = nil;
         
         [self _resetLocation];
-        
-        _geoIPURL = [NSURL URLWithString:@"http://freegeoip.net/json/"];
-        _geoIPRequest = [NSURLRequest requestWithURL:_geoIPURL];
-        _geoIPOperationQueue = [NSOperationQueue new];
     }
     
     return self;
@@ -327,8 +323,13 @@ static NSMutableDictionary *instances = nil;
 
 -(void)_cancelAndResetForwardGeocodeWithIPAddress
 {
-    if( _geoIPOperationQueue != nil ){
-        [_geoIPOperationQueue cancelAllOperations];
+    if( _IPAddressGeocoder != nil ){
+        
+        if( [_IPAddressGeocoder isGeocoding] ){
+            [_IPAddressGeocoder cancelGeocode];
+        }
+        
+        _IPAddressGeocoder = nil;
     }
 }
 
@@ -417,34 +418,16 @@ static NSMutableDictionary *instances = nil;
 {
     [self _cancelAndResetForwardGeocodeWithIPAddress];
     
-    [NSURLConnection sendAsynchronousRequest:_geoIPRequest queue:_geoIPOperationQueue completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
+    _IPAddressGeocoder = [FCIPAddressGeocoder new];
+    
+    [_IPAddressGeocoder geocode:^(BOOL success) {
         
-        if( connectionError == nil )
+        if(success)
         {
-            NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
-            
-            if( httpResponse.statusCode == 200 )
-            {
-                NSError *dataError = nil;
-                NSDictionary *dataJSON = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:&dataError];
-                
-                if( dataError == nil )
-                {
-                    CLLocationDegrees dataLatitude = [[dataJSON objectForKey:@"latitude"] doubleValue];
-                    CLLocationDegrees dataLongitude = [[dataJSON objectForKey:@"longitude"] doubleValue];
-                    CLLocation *dataLocation = [[CLLocation alloc] initWithLatitude:dataLatitude longitude:dataLongitude];
-                    
-                    [self _completeForwardGeocodeWithLocation:dataLocation];
-                }
-                else {
-                    
-                    [self _completeGeocodeWithError:dataError];
-                }
-            }
+            [self _completeForwardGeocodeWithLocation:_IPAddressGeocoder.location];
         }
         else {
-            
-            [self _completeGeocodeWithError:connectionError];
+            [self _completeGeocodeWithError:_IPAddressGeocoder.error];
         }
     }];
 }
