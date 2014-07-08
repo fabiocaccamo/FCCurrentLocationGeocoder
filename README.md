@@ -15,7 +15,8 @@ iOS Class on top of LocationManager and CLGeocoder for **geocode / reverse-geoco
 `pod 'FCCurrentLocationGeocoder'`
 
 ####Manual install:
-Copy `FCCurrentLocationGeocoder.h` and `FCCurrentLocationGeocoder.m` to your project and manual install [FCIPAddressGeocoder](https://github.com/fabiocaccamo/FCIPAddressGeocoder)
+- Copy `FCCurrentLocationGeocoder.h` and `FCCurrentLocationGeocoder.m` to your project
+- Manual install [FCIPAddressGeocoder](https://github.com/fabiocaccamo/FCIPAddressGeocoder)
 
 ##Usage
 ```objective-c
