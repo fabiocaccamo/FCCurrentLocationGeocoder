@@ -32,8 +32,8 @@
 }
 
 
-@property (nonatomic, readwrite) BOOL canFallbackToGeoIP;
 @property (nonatomic, readwrite) BOOL canPromptForAuthorization;
+@property (nonatomic, readwrite) BOOL canUseIPAddressAsFallback;
 
 @property (nonatomic, readwrite) NSTimeInterval timeFilter;
 @property (nonatomic, readwrite) NSTimeInterval timeoutErrorDelay;

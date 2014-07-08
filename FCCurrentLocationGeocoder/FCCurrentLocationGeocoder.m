@@ -59,8 +59,8 @@ static NSMutableDictionary *instances = nil;
         _timeoutErrorDelay = 15;
         _timeFilter = 5;
         
-        _canFallbackToGeoIP = NO;
         _canPromptForAuthorization = YES;
+        _canUseIPAddressAsFallback = NO;
         
         _geocoding = NO;
         
@@ -104,27 +104,27 @@ static NSMutableDictionary *instances = nil;
 
 -(BOOL)canGeocode
 {
-    return [FCCurrentLocationGeocoder canGeocodeIfCanPromptForAuthorization:_canPromptForAuthorization andIfCanFallbackToGeoIP:_canFallbackToGeoIP];
+    return [FCCurrentLocationGeocoder canGeocodeIfCanPromptForAuthorization:_canPromptForAuthorization andIfCanUseIPAddressAsFallback:_canUseIPAddressAsFallback];
 }
 
 
 +(BOOL)canGeocode
 {
-    return [self canGeocodeIfCanPromptForAuthorization:YES andIfCanFallbackToGeoIP:NO];
+    return [self canGeocodeIfCanPromptForAuthorization:YES andIfCanUseIPAddressAsFallback:NO];
 }
 
 
-+(BOOL)canGeocodeIfCanPromptForAuthorization:(BOOL)canPromptForAuthorization andIfCanFallbackToGeoIP:(BOOL)canFallbackToGeoIP
++(BOOL)canGeocodeIfCanPromptForAuthorization:(BOOL)canPromptForAuthorization andIfCanUseIPAddressAsFallback:(BOOL)canUseIPAddressAsFallback
 {
     //http://stackoverflow.com/questions/4318708/checking-for-ios-location-services
     
-    return ([CLLocationManager locationServicesEnabled] && (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorized) || (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined) && canPromptForAuthorization))) || canFallbackToGeoIP;
+    return ([CLLocationManager locationServicesEnabled] && (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorized) || (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined) && canPromptForAuthorization))) || canUseIPAddressAsFallback;
 }
 
 
 +(BOOL)canGeocodeWithoutPromptForAuthorization
 {
-    return [self canGeocodeIfCanPromptForAuthorization:NO andIfCanFallbackToGeoIP:NO];
+    return [self canGeocodeIfCanPromptForAuthorization:NO andIfCanUseIPAddressAsFallback:NO];
 }
 
 
@@ -165,11 +165,11 @@ static NSMutableDictionary *instances = nil;
     }
     else {
         
-        if( _canFallbackToGeoIP )
+        if( _canUseIPAddressAsFallback )
         {
             [self _cancelAndResetForwardGeocode];
             
-            [self _forwardGeocodeWithGeoIP];
+            [self _forwardGeocodeWithIPAddress];
         }
         else {
             
@@ -304,7 +304,7 @@ static NSMutableDictionary *instances = nil;
 {
     [self _cancelAndResetTimeoutErrorTimer];
     [self _cancelAndResetForwardGeocode];
-    [self _cancelAndResetForwardGeocodeWithGeoIP];
+    [self _cancelAndResetForwardGeocodeWithIPAddress];
     [self _cancelAndResetReverseGeocode];
 }
 
@@ -325,7 +325,7 @@ static NSMutableDictionary *instances = nil;
 }
 
 
--(void)_cancelAndResetForwardGeocodeWithGeoIP
+-(void)_cancelAndResetForwardGeocodeWithIPAddress
 {
     if( _geoIPOperationQueue != nil ){
         [_geoIPOperationQueue cancelAllOperations];
@@ -402,9 +402,9 @@ static NSMutableDictionary *instances = nil;
     {
         [_locationManager startUpdatingLocation];
     }
-    else if( _canFallbackToGeoIP )
+    else if( _canUseIPAddressAsFallback )
     {
-        [self _forwardGeocodeWithGeoIP];
+        [self _forwardGeocodeWithIPAddress];
     }
     else {
         
@@ -413,9 +413,9 @@ static NSMutableDictionary *instances = nil;
 }
 
 
--(void)_forwardGeocodeWithGeoIP
+-(void)_forwardGeocodeWithIPAddress
 {
-    [self _cancelAndResetForwardGeocodeWithGeoIP];
+    [self _cancelAndResetForwardGeocodeWithIPAddress];
     
     [NSURLConnection sendAsynchronousRequest:_geoIPRequest queue:_geoIPOperationQueue completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
         
