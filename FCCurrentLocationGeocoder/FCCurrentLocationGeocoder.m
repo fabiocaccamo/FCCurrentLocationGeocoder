@@ -28,6 +28,11 @@ static NSMutableDictionary *instances = nil;
 
 +(FCCurrentLocationGeocoder *)sharedGeocoderForKey:(NSString *)key
 {
+    if( key == nil )
+    {
+        return [self sharedGeocoder];
+    }
+    
     if( instances == nil ){
         instances = [NSMutableDictionary new];
     }
@@ -35,7 +40,7 @@ static NSMutableDictionary *instances = nil;
     FCCurrentLocationGeocoder *instance = [instances objectForKey:key];
     
     if( instance == nil ){
-        instance = [FCCurrentLocationGeocoder new];
+        instance = [self new];
         
         [instances setObject:instance forKey:key];
     }
