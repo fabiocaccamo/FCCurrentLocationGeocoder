@@ -7,6 +7,7 @@ iOS Class on top of LocationManager and CLGeocoder for **geocode / reverse-geoco
 - iOS >= 5.0
 - ARC enabled
 - CoreLocation Framework
+- [FCIPAddressGeocoder](https://github.com/fabiocaccamo/FCIPAddressGeocoder)
 
 ##Installation
 
@@ -14,7 +15,7 @@ iOS Class on top of LocationManager and CLGeocoder for **geocode / reverse-geoco
 `pod 'FCCurrentLocationGeocoder'`
 
 ####Manual install:
-Copy `FCCurrentLocationGeocoder.h` and `FCCurrentLocationGeocoder.m` to your project.
+Copy `FCCurrentLocationGeocoder.h` and `FCCurrentLocationGeocoder.m` to your project and manual install [FCIPAddressGeocoder](https://github.com/fabiocaccamo/FCIPAddressGeocoder)
 
 ##Usage
 ```objective-c
@@ -26,9 +27,11 @@ Copy `FCCurrentLocationGeocoder.h` and `FCCurrentLocationGeocoder.m` to your pro
 
 //or create a new geocoder and set options
 FCCurrentLocationGeocoder *geocoder = [FCCurrentLocationGeocoder new];
+geocoder.canPromptForAuthorization = NO; //(optional, default value is YES)
+geocoder.canUseIPAddressAsFallback = YES; //(optional, default value is NO. very useful if you want to know user current location country without asking for permission)
 geocoder.timeFilter = 30; //(cache duration, optional, default value is 5 seconds)
 geocoder.timeoutErrorDelay = 10; //(optional, default value is 15 seconds)
-geocoder.canPromptForAuthorization = NO; //(optional, default value is YES)
+
 ```
 ```objective-c
 //check if location services are enabled and the current app is authorized or could be authorized
