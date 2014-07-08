@@ -10,5 +10,5 @@ Pod::Spec.new do |spec|
   spec.platform     = :ios, '5.0'
   spec.framework    = 'Foundation', 'UIKit', 'CoreLocation'
   spec.requires_arc = true
-  spec.dependency 'FCIPAddressGeocoder'
+  spec.dependency 'FCIPAddressGeocoder', '~> 1.0.0'
 end
