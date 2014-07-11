@@ -29,7 +29,7 @@ iOS Class on top of LocationManager and CLGeocoder for **geocode / reverse-geoco
 //or create a new geocoder and set options
 FCCurrentLocationGeocoder *geocoder = [FCCurrentLocationGeocoder new];
 geocoder.canPromptForAuthorization = NO; //(optional, default value is YES)
-geocoder.canUseIPAddressAsFallback = YES; //(optional, default value is NO. very useful if you want to know user current location country without asking for permission)
+geocoder.canUseIPAddressAsFallback = YES; //(optional, default value is NO. very useful if you need just the approximate user location, such as current country, without asking for permission)
 geocoder.timeFilter = 30; //(cache duration, optional, default value is 5 seconds)
 geocoder.timeoutErrorDelay = 10; //(optional, default value is 15 seconds)
 
