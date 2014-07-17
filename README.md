@@ -3,7 +3,7 @@ FCCurrentLocationGeocoder
 
 iOS Class on top of LocationManager and CLGeocoder for **forward geocode and reverse geocode user current location** using a block-based syntax.
 
-It can be used also to **know the user approximate location (always country, almost always city) without asking for permission** (using a free GeoIP service).
+It can also be used to **know the user's approximate location (always country, almost always city) without asking for permission** (using a free GeoIP service).
 
 ##Requirements & Dependecies
 - iOS >= 5.0
