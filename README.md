@@ -1,7 +1,7 @@
 FCCurrentLocationGeocoder
 =========================
 
-iOS Geocoder on top of LocationManager and CLGeocoder for **forward geocode and reverse geocode user current location** using a block-based syntax.
+iOS Geocoder on top of LocationManager and CLGeocoder for **forward geocode and reverse geocode user's current location** using a block-based syntax.
 
 It can also be used to **geocode the user's approximate location (always country, almost always city) without asking for permission** (using a free GeoIP service).
 
