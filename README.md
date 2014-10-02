@@ -1,4 +1,4 @@
-FCCurrentLocationGeocoder
+FCCurrentLocationGeocoder [![Pod version](https://badge.fury.io/co/FCCurrentLocationGeocoder.svg)](http://badge.fury.io/co/FCCurrentLocationGeocoder)
 =========================
 
 iOS Geocoder on top of LocationManager and CLGeocoder for **forward geocode and reverse geocode user's current location** using a block-based syntax.
