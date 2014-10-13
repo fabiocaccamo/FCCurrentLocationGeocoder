@@ -21,6 +21,13 @@ It can also be used to **geocode the user's approximate location (always country
 - Manual install [FCIPAddressGeocoder](https://github.com/fabiocaccamo/FCIPAddressGeocoder/#manual-install)
 
 ##Usage
+
+###iOS 8
+Since iOS 8 it is required to add `NSLocationWhenInUseUsageDescription` key to your `Info.plist` file. Value for this key will be a description of UIAlertView presented to user while asking for location  permission. See [Apple documentation](https://developer.apple.com/library/ios/documentation/corelocation/reference/CLLocationManager_Class/index.html#//apple_ref/occ/instm/CLLocationManager/requestWhenInUseAuthorization) for more info.
+
+###Code sample
+
+
 ```objective-c
 //you can use the shared instance
 [FCCurrentLocationGeocoder sharedGeocoder];

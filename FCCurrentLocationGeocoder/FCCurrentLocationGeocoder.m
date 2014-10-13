@@ -68,6 +68,15 @@
         _locationManager.delegate = self;
         _locationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation;
         
+        // Since iOS 8 it is required to request location permission before use
+        // You also have to set NSLocationWhenInUseUsageDescription key in your Info.plist file.
+        // The value for this key will be displayed as description of alert shown for user.
+        // See: https://developer.apple.com/library/ios/documentation/corelocation/reference/CLLocationManager_Class/index.html#//apple_ref/occ/instm/CLLocationManager/requestWhenInUseAuthorization
+        
+        if ([_locationManager respondsToSelector:@selector(requestWhenInUseAuthorization)]) {
+            [_locationManager requestWhenInUseAuthorization];
+        }
+        
         _bestLocation = nil;
         _bestLocationAttemptTimeoutTimer = nil;
         _bestLocationAttemptTimeout = 1;
@@ -112,6 +121,13 @@
 
 +(BOOL)canGeocodeIfCanPromptForAuthorization:(BOOL)canPromptForAuthorization andIfCanUseIPAddressAsFallback:(BOOL)canUseIPAddressAsFallback
 {
+    
+    // Since iOS 8 kCLAuthorizationStatusAuthorizedWhenInUse is also valid status and kCLAuthorizationStatusAuthorized is deprecated in favor of kCLAuthorizationStatusAuthorizedAlways
+    
+    if ([[UIDevice currentDevice].systemVersion floatValue] >= 8.0) {
+        return ([CLLocationManager locationServicesEnabled] && (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorizedAlways) || ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorizedWhenInUse) || (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined) && canPromptForAuthorization))) || canUseIPAddressAsFallback;
+    }
+    
     //http://stackoverflow.com/questions/4318708/checking-for-ios-location-services
     
     return ([CLLocationManager locationServicesEnabled] && (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorized) || (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined) && canPromptForAuthorization))) || canUseIPAddressAsFallback;
