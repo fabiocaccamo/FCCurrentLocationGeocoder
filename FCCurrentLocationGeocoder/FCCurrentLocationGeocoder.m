@@ -261,6 +261,15 @@
 }
 
 
+-(void)locationManagerDidUpdateToBestLocation
+{
+    _location = _bestLocation;
+    
+    [self _cancelAndResetForwardGeocode];
+    [self _reverseGeocodeIfNeededOrCompleteGeocode];
+}
+
+
 -(void)_startGeocodeWithCompletion:(void (^)(BOOL success))completionHandler
 {
     if( _error != nil )
