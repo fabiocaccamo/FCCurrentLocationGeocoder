@@ -73,9 +73,11 @@
         // The value for this key will be displayed as description of alert shown for user.
         // See: https://developer.apple.com/library/ios/documentation/corelocation/reference/CLLocationManager_Class/index.html#//apple_ref/occ/instm/CLLocationManager/requestWhenInUseAuthorization
         
+        #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
         if ([_locationManager respondsToSelector:@selector(requestWhenInUseAuthorization)]) {
             [_locationManager requestWhenInUseAuthorization];
         }
+        #endif
         
         _bestLocation = nil;
         _bestLocationAttemptTimeoutTimer = nil;
@@ -121,16 +123,22 @@
 
 +(BOOL)canGeocodeIfCanPromptForAuthorization:(BOOL)canPromptForAuthorization andIfCanUseIPAddressAsFallback:(BOOL)canUseIPAddressAsFallback
 {
+    CLAuthorizationStatus authStatus = [CLLocationManager authorizationStatus];
+    
+    #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
     
     // Since iOS 8 kCLAuthorizationStatusAuthorizedWhenInUse is also valid status and kCLAuthorizationStatusAuthorized is deprecated in favor of kCLAuthorizationStatusAuthorizedAlways
     
-    if ([[UIDevice currentDevice].systemVersion floatValue] >= 8.0) {
-        return ([CLLocationManager locationServicesEnabled] && (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorizedAlways) || ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorizedWhenInUse) || (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined) && canPromptForAuthorization))) || canUseIPAddressAsFallback;
+    if([[UIDevice currentDevice].systemVersion floatValue] >= 8.0)
+    {
+        return ([CLLocationManager locationServicesEnabled] && ((authStatus == kCLAuthorizationStatusAuthorizedAlways) || (authStatus == kCLAuthorizationStatusAuthorizedWhenInUse) || ((authStatus == kCLAuthorizationStatusNotDetermined) && canPromptForAuthorization))) || canUseIPAddressAsFallback;
     }
+    
+    #endif
     
     //http://stackoverflow.com/questions/4318708/checking-for-ios-location-services
     
-    return ([CLLocationManager locationServicesEnabled] && (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorized) || (([CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined) && canPromptForAuthorization))) || canUseIPAddressAsFallback;
+    return ([CLLocationManager locationServicesEnabled] && ((authStatus == kCLAuthorizationStatusAuthorized) || ((authStatus == kCLAuthorizationStatusNotDetermined) && canPromptForAuthorization))) || canUseIPAddressAsFallback;
 }
 
 
