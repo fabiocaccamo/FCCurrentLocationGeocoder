@@ -193,8 +193,6 @@
         }
         else {
             
-            [self cancelGeocode];
-            
             [self _completeGeocodeWithError:error];
         }
     }
