@@ -138,7 +138,10 @@
     
     //http://stackoverflow.com/questions/4318708/checking-for-ios-location-services
     
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     return ([CLLocationManager locationServicesEnabled] && ((authStatus == kCLAuthorizationStatusAuthorized) || ((authStatus == kCLAuthorizationStatusNotDetermined) && canPromptForAuthorization))) || canUseIPAddressAsFallback;
+#pragma clang diagnostic pop
 }
 
 
