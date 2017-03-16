@@ -5,24 +5,24 @@ iOS Geocoder on top of LocationManager and CLGeocoder for **forward geocode and 
 
 It can also be used to **geocode the user's approximate location (always country, almost always city) without asking for permission** (using a free GeoIP service).
 
-##Requirements & Dependecies
+## Requirements & Dependecies
 - iOS >= 5.0
 - ARC enabled
 - CoreLocation Framework
 - [FCIPAddressGeocoder](https://github.com/fabiocaccamo/FCIPAddressGeocoder)
 
-##Installation
+## Installation
 
-####CocoaPods:
+#### CocoaPods:
 `pod 'FCCurrentLocationGeocoder'`
 
-####Manual install:
+#### Manual install:
 - Copy `FCCurrentLocationGeocoder.h` and `FCCurrentLocationGeocoder.m` to your project
 - Manual install [FCIPAddressGeocoder](https://github.com/fabiocaccamo/FCIPAddressGeocoder/#manual-install)
 
-##Usage
+## Usage
 
-###iOS 8
+### iOS 8
 Since iOS 8 it is required to add `NSLocationWhenInUseUsageDescription` key to your `Info.plist` file. Value for this key will be a description of UIAlertView presented to user while asking for location  permission. See [Apple documentation](https://developer.apple.com/library/ios/documentation/corelocation/reference/CLLocationManager_Class/index.html#//apple_ref/occ/instm/CLLocationManager/requestWhenInUseAuthorization) for more info.
 
 Basically all you need to do is to add single entry in your `Info.plist` file. Add key `NSLocationWhenInUseUsageDescription`, and select type `String`. The value you enter for this entry will be shown as text in UIAlertView presented to user first time you try to determine his location.
@@ -30,7 +30,7 @@ In the end it should look similar to this:
 
 ![Added entry to Info.plist](https://raw.githubusercontent.com/burczyk/FCCurrentLocationGeocoder/ios8-location-permission/assets/Info_plist.png)
 
-###Code sample
+### Code sample
 
 
 ```objective-c
@@ -94,5 +94,5 @@ geocoder.timeoutErrorDelay = 10; //(optional, default value is 15 seconds)
 [geocoder cancelGeocode];
 ```
 
-##License
+## License
 Released under [MIT License](LICENSE).
