@@ -1,0 +1,13 @@
+PODS:
+  - FCCurrentLocationGeocoder (1.1.8):
+    - FCIPAddressGeocoder (~> 1.0.0)
+  - FCIPAddressGeocoder (1.0.2)
+
+DEPENDENCIES:
+  - FCCurrentLocationGeocoder
+
+SPEC CHECKSUMS:
+  FCCurrentLocationGeocoder: 5713595c3aef64e8cf74b6478d7d3d4b76c580d2
+  FCIPAddressGeocoder: 52525f87f237f79b872ecaffbece6b0b40e9e0a0
+
+COCOAPODS: 0.34.2
